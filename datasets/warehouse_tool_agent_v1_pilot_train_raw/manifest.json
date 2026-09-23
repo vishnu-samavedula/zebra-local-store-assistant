@@ -1,0 +1,18 @@
+{
+  "schema_version": 2,
+  "name": "warehouse_tool_agent_v1_pilot_train_raw",
+  "channel": "training/candidates",
+  "current": {
+    "object_sha": "4efb3632cd565351cf49b3e9dda160441b720e8f3b15de1eee241a993396f038",
+    "dataset_object_id": null
+  },
+  "history": [
+    {
+      "object_sha": "48d931019fd1f4cf628853bf26c88e5c2639f20b94a060e2468215b21e3d7914",
+      "dataset_object_id": null,
+      "superseded_at": "2026-09-22T21:04:12+00:00",
+      "reason": "Separate 300-example pilot training set; approved 100-row dataset remains held out for evaluation"
+    }
+  ],
+  "updated_at": "2026-09-22T21:04:12+00:00"
+}

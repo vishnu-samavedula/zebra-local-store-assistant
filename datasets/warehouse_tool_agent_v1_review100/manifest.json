@@ -1,0 +1,18 @@
+{
+  "schema_version": 2,
+  "name": "warehouse_tool_agent_v1_review100",
+  "channel": "training/candidates",
+  "current": {
+    "object_sha": "828efda0388294cf9f92b45c879374f228cc04beb4b3152d88a52ccd33c5d4dd",
+    "dataset_object_id": null
+  },
+  "history": [
+    {
+      "object_sha": "68fd134f0eb6204c3c404a69cc084ba9d5eade6edd64e0acadf4897e4c9b981d",
+      "dataset_object_id": null,
+      "superseded_at": "2026-09-22T20:38:02+00:00",
+      "reason": "Scale approved grounded v5 pipeline to 10 variants across each of 10 scenario families"
+    }
+  ],
+  "updated_at": "2026-09-22T20:38:02+00:00"
+}

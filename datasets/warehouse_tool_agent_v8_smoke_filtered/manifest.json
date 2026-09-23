@@ -1,0 +1,14 @@
+{
+  "schema_version": 2,
+  "name": "warehouse_tool_agent_v8_smoke_filtered",
+  "channel": "main",
+  "current": {
+    "object_sha": "4ffe06581a9e21bb0eade440dbe3367493645457808caed2ab1852b5b2f07b29",
+    "purpose": "training",
+    "rows": 8,
+    "spec_sha256": "79f4c0f8f38aa3d460f144804eba3ab56744efa2e5d11a3541d5efbbb4ea0866",
+    "created_at": "2026-09-22T20:59:19+00:00"
+  },
+  "history": [],
+  "updated_at": "2026-09-22T20:59:19+00:00"
+}

@@ -1,0 +1,16 @@
+{
+  "dataset": "datasets/warehouse_tool_agent_v1_review100_v3",
+  "dataset_object_id": null,
+  "decision": "approved_for_pilot_data_preparation",
+  "scope": "all_100_examples",
+  "approved_by": "user",
+  "approved_on": "2026-09-22",
+  "automated_checks": {
+    "rows": 100,
+    "tool_calls": 122,
+    "grounding_errors": 0,
+    "policy_errors": 0
+  },
+  "training_authorized": false,
+  "note": "Approval covers the reviewed dataset. Paid training remains gated on its displayed configuration and cost ceiling."
+}

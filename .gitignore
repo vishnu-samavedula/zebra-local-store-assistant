@@ -1,0 +1,59 @@
+# macOS and editors
+.DS_Store
+.idea/
+.vscode/
+*.iml
+*~
+
+# Local configuration and credentials
+.env
+.env.*
+!.env.example
+**/local.properties
+*.keystore
+*.jks
+*.pem
+*.key
+credentials*.json
+secrets*.json
+
+# Python caches and environments
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Android / Gradle output
+**/.gradle/
+**/.kotlin/
+**/build/
+**/captures/
+**/.externalNativeBuild/
+**/.cxx/
+*.apk
+*.aab
+
+# Native runtimes and model artifacts are distributed separately
+android/app/src/main/jniLibs/
+models/downloads/
+models/lfm25-350m-p1b-lora/
+models/**/*.gguf
+models/**/*.safetensors
+models/**/*.bin
+models/**/*.tar.gz
+
+# Machine-local LQH state and generated cloud/run output
+.lqh/
+runs/*/
+artifacts/
+datasets/**/.objects/
+*.log
+*.lock
+
+# Local project / LQH working files
+NOTES.md
+SPEC.md
+
+# Generated review bundles (keep the template and approval record)
+review/warehouse-tool-dataset-review.html
+review/warehouse-tool-dataset-review-standalone.html

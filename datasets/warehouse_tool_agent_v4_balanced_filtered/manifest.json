@@ -1,0 +1,15 @@
+{
+  "schema_version": 2,
+  "name": "warehouse_tool_agent_v4_balanced_filtered",
+  "channel": "warehouse_tool_agent_v4_balanced_filtered",
+  "current": {
+    "object_sha": "77c5b9d4662ff83bb7cf6e8364a224f4e01c87ce136019500ede8b8bea99e9f2",
+    "purpose": "training",
+    "rows": 60,
+    "spec_sha256": "ec6e2a29b5d4fe7aa2f9c408a933c3c349058879ef06a89f0df1ebba00587ee5",
+    "created_at": "2026-09-23T05:03:44+00:00",
+    "dataset_object_id": null
+  },
+  "history": [],
+  "updated_at": "2026-09-23T05:11:25+00:00"
+}

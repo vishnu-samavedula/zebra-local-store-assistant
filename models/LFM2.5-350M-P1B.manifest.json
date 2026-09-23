@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "base_model": "LiquidAI/LFM2.5-350M",
+  "base_revision": "9e6c6ccf47cd318696e137d381a7ded8fe4df09f",
+  "formats": [
+    {
+      "name": "LFM2.5-350M-P1B-Q4_K.gguf",
+      "quantization": "Q4_K",
+      "bytes": 229314496,
+      "sha256": "ca51ff03d283585ca5115af2f9b85e8194fe7991452bebd04e36a23928ea54cd"
+    },
+    {
+      "name": "LFM2.5-350M-P1B-Q8_0.gguf",
+      "quantization": "Q8_0",
+      "bytes": 379219904,
+      "sha256": "26d0da4086cb71b6ddff3e62a0c1dba4dac0aec464333763838622972e8e8fd9"
+    }
+  ]
+}

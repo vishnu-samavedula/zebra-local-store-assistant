@@ -1,0 +1,18 @@
+{
+  "schema_version": 2,
+  "name": "warehouse_tool_agent_v4_review",
+  "channel": "training/candidates",
+  "current": {
+    "object_sha": "8bf96244ade4fe725fa65c74936a9a25f99222a5cbea635721ba373c64086405",
+    "dataset_object_id": null
+  },
+  "history": [
+    {
+      "object_sha": "bbe9616ad8e123a017de5dab78395bab1f1151891094e0f260132c2d3d3f318b",
+      "dataset_object_id": null,
+      "superseded_at": "2026-09-22T20:35:17+00:00",
+      "reason": "Tighten action fidelity and worker-facing summaries after full v3 review"
+    }
+  ],
+  "updated_at": "2026-09-22T20:35:17+00:00"
+}

@@ -1,0 +1,17 @@
+{
+  "input": "./datasets/warehouse_tool_agent_v1_pilot_train_raw/data.parquet",
+  "scorer": "./evals/scorers/warehouse_tool_agent_v1.md",
+  "threshold": 8.0,
+  "total": 300,
+  "scored": 300,
+  "kept": 295,
+  "kept_unjudged": 0,
+  "dropped": 5,
+  "failed": 0,
+  "keep_rate": 0.9833,
+  "mean_score": 9.86,
+  "scoring_model": "judge:large",
+  "scoring_model_size": "large",
+  "scoring_model_pin": null,
+  "timestamp": "2026-09-22T21:06:22Z"
+}

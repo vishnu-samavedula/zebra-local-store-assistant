@@ -1,0 +1,18 @@
+{
+  "schema_version": 2,
+  "name": "warehouse_tool_agent_v6_smoke",
+  "channel": "training/candidates",
+  "current": {
+    "object_sha": "2bb8ac499933171781c65c533b957b14fc241e7ddef0ca77e7966057ad8210a3",
+    "dataset_object_id": null
+  },
+  "history": [
+    {
+      "object_sha": "4a7097c5d7561b68aba571b2d5225e5d2243ac05aa949a408906d9f3454e9d93",
+      "dataset_object_id": null,
+      "superseded_at": "2026-09-22T20:38:43+00:00",
+      "reason": "Validate hardened JSON response handling before final 100-example run"
+    }
+  ],
+  "updated_at": "2026-09-22T20:38:43+00:00"
+}

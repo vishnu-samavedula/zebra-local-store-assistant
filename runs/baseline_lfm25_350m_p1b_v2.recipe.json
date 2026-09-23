@@ -1,0 +1,19 @@
+{
+  "tool": "eval_hf_model",
+  "args": {
+    "repo": "LiquidAI/LFM2.5-350M",
+    "revision": "main",
+    "training_method": "full",
+    "eval_dataset": "datasets/warehouse_tool_agent_v1_pilot_eval_runtime_v1",
+    "scorer": "evals/scorers/warehouse_tool_agent_v1.md",
+    "system_prompt_path": "prompts/warehouse_tool_agent_v0.md",
+    "judge_size": "large",
+    "run_name": "baseline_lfm25_350m_p1b_v2",
+    "max_new_tokens": 128,
+    "timeout_minutes": 30
+  },
+  "allow_hf_donate": true,
+  "auto_normalize_tool_wire_format": true,
+  "gpu_hourly_usd": 3.60,
+  "max_cost_usd": 1.80
+}

@@ -1,0 +1,18 @@
+{
+  "schema_version": 2,
+  "name": "warehouse_tool_agent_v7_smoke",
+  "channel": "training/candidates",
+  "current": {
+    "object_sha": "75c5e5fdd380d06bc0206a0d3ad1ccfad39f1ba7b53c1cfc584cf213aa0cf33b",
+    "dataset_object_id": null
+  },
+  "history": [
+    {
+      "object_sha": "1edb94121566f8132dd4e1fc6dfafc6eb36376f2f59dec3c2435258fbfdd3290",
+      "dataset_object_id": null,
+      "superseded_at": "2026-09-22T20:41:52+00:00",
+      "reason": "Validate deterministic task-location, dependent-answer, and missing-action drift checks"
+    }
+  ],
+  "updated_at": "2026-09-22T20:41:52+00:00"
+}

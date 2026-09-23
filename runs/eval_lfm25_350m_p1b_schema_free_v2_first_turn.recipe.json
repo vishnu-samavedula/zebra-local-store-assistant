@@ -1,0 +1,17 @@
+{
+  "tool": "eval_hf_model",
+  "args": {
+    "checkpoint_artifact_id": "<YOUR_CHECKPOINT_ARTIFACT_ID>",
+    "training_method": "lora",
+    "base_model": "LiquidAI/LFM2.5-350M",
+    "eval_dataset": "datasets/warehouse_tool_agent_v2_schema_free_first_turn_eval",
+    "scorer": "evals/scorers/warehouse_tool_agent_v1.md",
+    "judge_size": "large",
+    "run_name": "eval_lfm25_350m_p1b_schema_free_v2_first_turn",
+    "max_new_tokens": 128,
+    "timeout_minutes": 20
+  },
+  "allow_hf_donate": true,
+  "gpu_hourly_usd": 3.60,
+  "max_cost_usd": 1.20
+}

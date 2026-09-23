@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "transform": "remove_all_tool_schemas_and_freeze_system_contract",
+  "source": "./datasets/warehouse_tool_agent_v1_pilot_train_filtered/data.parquet",
+  "source_rows": 295,
+  "output_rows": 295,
+  "removed_request_tools_column": true,
+  "removed_message_tool_fields": 295,
+  "system_prompt": "./prompts/warehouse_tool_agent_schema_free_v1.md",
+  "system_prompt_sha256": "e13363127c75d7603317e92a8300bef205f0159d8551b7f92c8f7631ec147f69",
+  "output_sha256": "5f341adc683b7bc1dc9793b66d7bed96006c9b78020333ae461f552ea16cdbcc",
+  "created_at": "2026-09-23T04:14:12.211647+00:00"
+}

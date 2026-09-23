@@ -1,0 +1,18 @@
+{
+  "schema_version": 2,
+  "name": "warehouse_tool_agent_v1_review100_final",
+  "channel": "training/candidates",
+  "current": {
+    "object_sha": "7689db6428149b01404b6d8694552579d564b0efa899c1b7ca527738da06d6cb",
+    "dataset_object_id": null
+  },
+  "history": [
+    {
+      "object_sha": "4a4bbbe6cde694d7eeca1426c404c5cd576bbb42b8b56833cfc7adbe6d982522",
+      "dataset_object_id": null,
+      "superseded_at": "2026-09-22T20:40:09+00:00",
+      "reason": "Final grounded 100-example review set after JSON handling and drift validation hardening"
+    }
+  ],
+  "updated_at": "2026-09-22T20:40:09+00:00"
+}

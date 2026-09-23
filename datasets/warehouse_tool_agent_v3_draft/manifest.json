@@ -1,0 +1,18 @@
+{
+  "schema_version": 2,
+  "name": "warehouse_tool_agent_v3_draft",
+  "channel": "training/candidates",
+  "current": {
+    "object_sha": "df8296cb0135857286ff8ce89de0bf078a10c83cf3bfbf0ba24775d6a18c8b65",
+    "dataset_object_id": null
+  },
+  "history": [
+    {
+      "object_sha": "90ba549fb404242588392dcaf322b08a678cc63f8d89b8f7adb253bc693a041b",
+      "dataset_object_id": null,
+      "superseded_at": "2026-09-22T20:33:51+00:00",
+      "reason": "Replace ungrounded draft with canonical 49-SKU catalog and 24-task fixtures"
+    }
+  ],
+  "updated_at": "2026-09-22T20:33:51+00:00"
+}

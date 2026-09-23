@@ -1,0 +1,14 @@
+{
+  "schema_version": 2,
+  "name": "warehouse_tool_agent_v1_pilot_train_filtered",
+  "channel": "main",
+  "current": {
+    "object_sha": "f589e352c40b103c56b8129725d5f863518f6a0085d24c924ba81d3c035e45b5",
+    "purpose": "training",
+    "rows": 295,
+    "spec_sha256": "79f4c0f8f38aa3d460f144804eba3ab56744efa2e5d11a3541d5efbbb4ea0866",
+    "created_at": "2026-09-22T21:06:22+00:00"
+  },
+  "history": [],
+  "updated_at": "2026-09-22T21:06:22+00:00"
+}

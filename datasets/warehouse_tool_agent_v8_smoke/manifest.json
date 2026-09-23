@@ -1,0 +1,18 @@
+{
+  "schema_version": 2,
+  "name": "warehouse_tool_agent_v8_smoke",
+  "channel": "training/candidates",
+  "current": {
+    "object_sha": "38ff619cb2c7d5e91f6a09b561b565bd642a694a90cdc98e8557e73d83120bd1",
+    "dataset_object_id": null
+  },
+  "history": [
+    {
+      "object_sha": "29a8a4642742bbd3e15ba23d4c0fcd1c4f88d5127a009a278f6dcf8352442829",
+      "dataset_object_id": null,
+      "superseded_at": "2026-09-22T20:44:43+00:00",
+      "reason": "Validate hybrid controlled/generated pipeline after semantic review"
+    }
+  ],
+  "updated_at": "2026-09-22T20:44:43+00:00"
+}

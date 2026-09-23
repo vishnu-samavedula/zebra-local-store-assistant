@@ -1,0 +1,18 @@
+{
+  "schema_version": 2,
+  "name": "warehouse_tool_agent_v2_schema_free_train_filtered",
+  "channel": "warehouse_tool_agent_v2_schema_free_train_filtered",
+  "current": {
+    "object_sha": "de8072cff1a066c0bc8d82101a1f0ac57e7c269cdf6006ed8267aadf795203ea",
+    "dataset_object_id": null
+  },
+  "history": [
+    {
+      "object_sha": "5f341adc683b7bc1dc9793b66d7bed96006c9b78020333ae461f552ea16cdbcc",
+      "dataset_object_id": null,
+      "superseded_at": "2026-09-23T04:19:22+00:00",
+      "reason": "auto-registered for training"
+    }
+  ],
+  "updated_at": "2026-09-23T04:19:22+00:00"
+}

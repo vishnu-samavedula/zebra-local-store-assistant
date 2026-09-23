@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "transform": "strip_message_level_tools_keep_request_level_tools",
+  "reason": "OpenAI-compatible requests require tool definitions at request level only",
+  "source": "./datasets/warehouse_tool_agent_v1_pilot_eval_filtered_v3/data.parquet",
+  "source_rows": 100,
+  "output_rows": 100,
+  "stripped_message_tool_fields": 100,
+  "output_sha256": "099d044e667dcbf69a7fbb25ef09272173383c2fbdc5a5d1452e5c969dc41207",
+  "created_at": "2026-09-22T21:34:27.561969+00:00"
+}

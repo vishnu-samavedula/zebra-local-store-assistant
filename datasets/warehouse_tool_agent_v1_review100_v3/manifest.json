@@ -1,0 +1,18 @@
+{
+  "schema_version": 2,
+  "name": "warehouse_tool_agent_v1_review100_v3",
+  "channel": "training/candidates",
+  "current": {
+    "object_sha": "11f5befab7a3130cb7a77f133e0d5c7c3ac78d4684bdf4506c521e411b1623c6",
+    "dataset_object_id": null
+  },
+  "history": [
+    {
+      "object_sha": "92ccaa4ac4ecaa601502cb08d054176e0f80a33f1ab967d3e1c2035d2ff87cbf",
+      "dataset_object_id": null,
+      "superseded_at": "2026-09-22T20:47:27+00:00",
+      "reason": "Final hybrid dataset with template-controlled high-risk scenarios and generated low-risk variation"
+    }
+  ],
+  "updated_at": "2026-09-22T20:47:27+00:00"
+}

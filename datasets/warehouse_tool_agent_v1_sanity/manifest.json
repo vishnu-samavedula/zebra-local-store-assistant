@@ -1,0 +1,14 @@
+{
+  "schema_version": 2,
+  "name": "warehouse_tool_agent_v1_sanity",
+  "channel": "main",
+  "current": {
+    "object_sha": "1f578dfa7ec8c306f074ccfb273bc6792fe44645ff74e8edc0f636a056557dc4",
+    "purpose": "smoke",
+    "rows": 1,
+    "spec_sha256": "155cedfd9918c57770c2f2aef9b31f1e4e1f85bab247a37f55d7108a1341453c",
+    "created_at": "2026-09-22T19:59:25+00:00"
+  },
+  "history": [],
+  "updated_at": "2026-09-22T19:59:25+00:00"
+}

@@ -1,0 +1,18 @@
+{
+  "schema_version": 2,
+  "name": "warehouse_tool_agent_v1_review100_v2",
+  "channel": "training/candidates",
+  "current": {
+    "object_sha": "39a6b2f63136edda3cb928fd8e6c4ae67bc457ca2d3ab961bb4c494820af7a29",
+    "dataset_object_id": null
+  },
+  "history": [
+    {
+      "object_sha": "39ba6b91aeca2b45f110d0b59f3ab3f69294d7a0a529b472880007f46ee0dca7",
+      "dataset_object_id": null,
+      "superseded_at": "2026-09-22T20:42:26+00:00",
+      "reason": "Replace first 100-row set after full review exposed three semantic-drift examples"
+    }
+  ],
+  "updated_at": "2026-09-22T20:42:26+00:00"
+}

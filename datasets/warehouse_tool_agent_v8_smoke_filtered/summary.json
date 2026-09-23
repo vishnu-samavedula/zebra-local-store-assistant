@@ -1,0 +1,17 @@
+{
+  "input": "./datasets/warehouse_tool_agent_v8_smoke/data.parquet",
+  "scorer": "./evals/scorers/warehouse_tool_agent_v1.md",
+  "threshold": 8.0,
+  "total": 10,
+  "scored": 10,
+  "kept": 8,
+  "kept_unjudged": 0,
+  "dropped": 2,
+  "failed": 0,
+  "keep_rate": 0.8,
+  "mean_score": 8.8,
+  "scoring_model": "judge:small",
+  "scoring_model_size": "small",
+  "scoring_model_pin": null,
+  "timestamp": "2026-09-22T20:59:19Z"
+}

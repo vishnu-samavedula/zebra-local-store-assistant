@@ -1,0 +1,14 @@
+{
+  "schema_version": 2,
+  "name": "warehouse_tool_agent_v1_draft",
+  "channel": "main",
+  "current": {
+    "object_sha": "959b4568c816167ebbd8bf0ced5a216ecbd7e13adec63af3c582b19e642ebb39",
+    "purpose": "inspection",
+    "rows": 10,
+    "spec_sha256": "155cedfd9918c57770c2f2aef9b31f1e4e1f85bab247a37f55d7108a1341453c",
+    "created_at": "2026-09-22T20:00:14+00:00"
+  },
+  "history": [],
+  "updated_at": "2026-09-22T20:00:14+00:00"
+}

@@ -1,0 +1,18 @@
+{
+  "schema_version": 2,
+  "name": "warehouse_tool_agent_v5_review",
+  "channel": "training/candidates",
+  "current": {
+    "object_sha": "87bc2b0748798787cccdfdcc762cc01a1348b2270db11d16d7c3a692dde0c0c4",
+    "dataset_object_id": null
+  },
+  "history": [
+    {
+      "object_sha": "b61c7bba20852a7809342b202a89c2e6d3c3ca736d0548e862222d933167d823",
+      "dataset_object_id": null,
+      "superseded_at": "2026-09-22T20:36:29+00:00",
+      "reason": "Reject invented dependent locations, physical actions, and missing-field values"
+    }
+  ],
+  "updated_at": "2026-09-22T20:36:29+00:00"
+}

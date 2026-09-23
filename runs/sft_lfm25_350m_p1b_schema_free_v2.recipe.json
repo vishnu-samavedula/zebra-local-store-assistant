@@ -1,0 +1,13 @@
+{
+  "tool": "start_training",
+  "args": {
+    "type": "sft",
+    "base_model": "LiquidAI/LFM2.5-350M",
+    "dataset": "datasets/warehouse_tool_agent_v2_schema_free_train_filtered",
+    "eval_dataset": "datasets/warehouse_tool_agent_v2_schema_free_eval_filtered",
+    "scorer": "evals/scorers/warehouse_tool_agent_v1.md",
+    "run_name": "sft_lfm25_350m_p1b_schema_free_v2",
+    "lora": true
+  },
+  "allow_hf_donate": true
+}

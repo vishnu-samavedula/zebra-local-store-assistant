@@ -1,0 +1,238 @@
+<div id="warehouse-review">
+  <style>
+    #warehouse-review { color: var(--foreground); }
+    #warehouse-review .review-header { display: grid; gap: 12px; margin-bottom: 16px; }
+    #warehouse-review .review-title { margin: 0; }
+    #warehouse-review .review-controls { display: grid; grid-template-columns: minmax(180px, 1fr) minmax(170px, .55fr) minmax(150px, .45fr); gap: 10px; align-items: end; }
+    #warehouse-review .review-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    #warehouse-review .review-list { display: grid; gap: 12px; }
+    #warehouse-review .example-head { display: flex; gap: 10px; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; }
+    #warehouse-review .example-id { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    #warehouse-review .utterance { margin: 12px 0; font-weight: 500; }
+    #warehouse-review .trace { display: grid; gap: 8px; }
+    #warehouse-review .trace-row { padding-left: 12px; border-left: 3px solid var(--border); }
+    #warehouse-review .trace-label { color: var(--muted-foreground); margin-bottom: 3px; }
+    #warehouse-review pre { white-space: pre-wrap; overflow-wrap: anywhere; margin: 4px 0 0; color: var(--foreground); }
+    #warehouse-review details { margin-top: 8px; }
+    #warehouse-review .pagination { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+    #warehouse-review .empty { padding: 24px 0; color: var(--muted-foreground); }
+    @media (max-width: 680px) {
+      #warehouse-review .review-controls { grid-template-columns: 1fr; }
+    }
+  </style>
+
+  <section class="review-header" aria-labelledby="review-title">
+    <div>
+      <h2 id="review-title" class="review-title">Warehouse tool-calling dataset review</h2>
+      <div class="text-muted">100 grounded examples · 10 scenario families · no training started</div>
+    </div>
+
+    <div class="viz-grid" aria-live="polite">
+      <div class="card viz-stat"><div class="text-muted">Reviewed</div><div id="reviewed-count" class="viz-stat-value tabular-nums">0 / 100</div></div>
+      <div class="card viz-stat"><div class="text-muted">Approved</div><div id="approved-count" class="viz-stat-value tabular-nums">0</div></div>
+      <div class="card viz-stat"><div class="text-muted">Flagged</div><div id="flagged-count" class="viz-stat-value tabular-nums">0</div></div>
+    </div>
+
+    <div class="review-controls">
+      <label class="form-label">Search
+        <input id="review-search" class="form-control" type="search" placeholder="Utterance, tool, SKU, location…">
+      </label>
+      <label class="form-label">Scenario
+        <select id="review-family" class="form-select"><option value="">All scenarios</option></select>
+      </label>
+      <label class="form-label">Review status
+        <select id="review-status" class="form-select">
+          <option value="">All statuses</option>
+          <option value="unreviewed">Unreviewed</option>
+          <option value="approved">Approved</option>
+          <option value="flagged">Flagged</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="review-actions">
+      <button id="export-review" class="btn btn-primary" type="button">Export review JSON</button>
+      <button id="approve-page" class="btn" type="button">Approve current page</button>
+      <button id="approve-filtered" class="btn" type="button">Approve all matching</button>
+      <button id="clear-review" class="btn btn-ghost" type="button">Clear decisions</button>
+      <span id="visible-count" class="text-muted" aria-live="polite"></span>
+    </div>
+  </section>
+
+  <section id="review-list" class="review-list" aria-label="Dataset examples"></section>
+  <div class="pagination">
+    <button id="previous-page" class="btn" type="button">Previous</button>
+    <span id="page-status" class="text-muted tabular-nums" aria-live="polite"></span>
+    <button id="next-page" class="btn" type="button">Next</button>
+  </div>
+
+  <script type="application/json" id="warehouse-review-data">__REVIEW_DATA__</script>
+  <script>
+    (() => {
+      const root = document.getElementById('warehouse-review');
+      const data = JSON.parse(root.querySelector('#warehouse-review-data').textContent);
+      const storageKey = 'warehouse-tool-review-v3';
+      const pageSize = 10;
+      let page = 0;
+      let decisions = {};
+      try { decisions = JSON.parse(localStorage.getItem(storageKey) || '{}'); } catch (_) {}
+
+      const list = root.querySelector('#review-list');
+      const search = root.querySelector('#review-search');
+      const family = root.querySelector('#review-family');
+      const status = root.querySelector('#review-status');
+      const families = [...new Set(data.map(row => row.family))];
+      families.forEach(value => {
+        const option = document.createElement('option');
+        option.value = value;
+        option.textContent = value;
+        family.appendChild(option);
+      });
+
+      const decisionFor = id => decisions[id] || 'unreviewed';
+      const save = () => {
+        try { localStorage.setItem(storageKey, JSON.stringify(decisions)); } catch (_) {}
+      };
+      const stringify = value => JSON.stringify(value, null, 2);
+
+      function filteredRows() {
+        const needle = search.value.trim().toLowerCase();
+        return data.filter(row => {
+          const matchesText = !needle || JSON.stringify(row).toLowerCase().includes(needle);
+          const matchesFamily = !family.value || row.family === family.value;
+          const matchesStatus = !status.value || decisionFor(row.id) === status.value;
+          return matchesText && matchesFamily && matchesStatus;
+        });
+      }
+
+      function updateCounts() {
+        const values = data.map(row => decisionFor(row.id));
+        const approved = values.filter(value => value === 'approved').length;
+        const flagged = values.filter(value => value === 'flagged').length;
+        root.querySelector('#reviewed-count').textContent = `${approved + flagged} / ${data.length}`;
+        root.querySelector('#approved-count').textContent = String(approved);
+        root.querySelector('#flagged-count').textContent = String(flagged);
+      }
+
+      function addTrace(container, label, value) {
+        const row = document.createElement('div');
+        row.className = 'trace-row';
+        const heading = document.createElement('div');
+        heading.className = 'trace-label text-small';
+        heading.textContent = label;
+        const pre = document.createElement('pre');
+        const code = document.createElement('code');
+        code.textContent = typeof value === 'string' ? value : stringify(value);
+        pre.appendChild(code);
+        row.append(heading, pre);
+        container.appendChild(row);
+      }
+
+      function makeCard(row) {
+        const card = document.createElement('article');
+        card.className = 'card';
+        const head = document.createElement('div');
+        head.className = 'example-head';
+        const identity = document.createElement('div');
+        identity.className = 'example-id';
+        const title = document.createElement('strong');
+        title.textContent = `Example ${String(row.id).padStart(3, '0')}`;
+        const badge = document.createElement('span');
+        badge.className = 'viz-badge';
+        badge.textContent = row.family;
+        identity.append(title, badge);
+
+        const selectLabel = document.createElement('label');
+        selectLabel.className = 'form-label';
+        selectLabel.textContent = 'Decision ';
+        const select = document.createElement('select');
+        select.className = 'form-select';
+        [['unreviewed','Unreviewed'], ['approved','Approve'], ['flagged','Flag']].forEach(([value, label]) => {
+          const option = document.createElement('option');
+          option.value = value;
+          option.textContent = label;
+          select.appendChild(option);
+        });
+        select.value = decisionFor(row.id);
+        select.addEventListener('change', () => {
+          if (select.value === 'unreviewed') delete decisions[row.id];
+          else decisions[row.id] = select.value;
+          save();
+          updateCounts();
+          if (status.value) render();
+        });
+        selectLabel.appendChild(select);
+        head.append(identity, selectLabel);
+
+        const utterance = document.createElement('p');
+        utterance.className = 'utterance';
+        utterance.textContent = `“${row.user}”`;
+        card.append(head, utterance);
+
+        const trace = document.createElement('div');
+        trace.className = 'trace';
+        if (!row.calls.length) addTrace(trace, 'Expected action', 'No tool call — clarify or reject');
+        row.calls.forEach((call, index) => addTrace(trace, `Tool call ${index + 1} · ${call.name}`, call.arguments));
+        if (row.final) addTrace(trace, 'Assistant response', row.final);
+        card.appendChild(trace);
+
+        if (row.results.length) {
+          const details = document.createElement('details');
+          const summary = document.createElement('summary');
+          summary.textContent = `Show ${row.results.length} grounded tool result${row.results.length === 1 ? '' : 's'}`;
+          const results = document.createElement('div');
+          results.className = 'trace';
+          row.results.forEach((result, index) => addTrace(results, `Result ${index + 1} · ${result.name}`, result.result));
+          details.append(summary, results);
+          card.appendChild(details);
+        }
+        return card;
+      }
+
+      function render() {
+        const rows = filteredRows();
+        const pages = Math.max(1, Math.ceil(rows.length / pageSize));
+        page = Math.min(page, pages - 1);
+        list.replaceChildren();
+        rows.slice(page * pageSize, (page + 1) * pageSize).forEach(row => list.appendChild(makeCard(row)));
+        if (!rows.length) {
+          const empty = document.createElement('div');
+          empty.className = 'empty';
+          empty.textContent = 'No examples match these filters.';
+          list.appendChild(empty);
+        }
+        root.querySelector('#visible-count').textContent = `${rows.length} matching examples`;
+        root.querySelector('#page-status').textContent = `Page ${page + 1} of ${pages}`;
+        root.querySelector('#previous-page').disabled = page === 0;
+        root.querySelector('#next-page').disabled = page >= pages - 1;
+        updateCounts();
+      }
+
+      [search, family, status].forEach(control => control.addEventListener('input', () => { page = 0; render(); }));
+      root.querySelector('#previous-page').addEventListener('click', () => { page -= 1; render(); root.scrollIntoView({behavior:'smooth'}); });
+      root.querySelector('#next-page').addEventListener('click', () => { page += 1; render(); root.scrollIntoView({behavior:'smooth'}); });
+      root.querySelector('#clear-review').addEventListener('click', () => { decisions = {}; save(); render(); });
+      root.querySelector('#approve-page').addEventListener('click', () => {
+        const rows = filteredRows().slice(page * pageSize, (page + 1) * pageSize);
+        rows.forEach(row => { decisions[row.id] = 'approved'; });
+        save();
+        render();
+      });
+      root.querySelector('#approve-filtered').addEventListener('click', () => {
+        filteredRows().forEach(row => { decisions[row.id] = 'approved'; });
+        save();
+        render();
+      });
+      root.querySelector('#export-review').addEventListener('click', () => {
+        const payload = data.map(row => ({id: row.id, family: row.family, decision: decisionFor(row.id)}));
+        const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'warehouse-tool-review-decisions.json';
+        link.click();
+        URL.revokeObjectURL(link.href);
+      });
+      render();
+    })();
+  </script>
+</div>
