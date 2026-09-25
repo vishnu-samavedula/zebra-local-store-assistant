@@ -1,7 +1,7 @@
 # Warehouse Companion Demo
 
 > This is an aspirational brainstorming document for later warehouse breadth. The implemented
-> two-tool P1A baseline, frozen five-tool P1B contract and authoritative phase roadmap are in
+> frozen five-tool P1B contract and authoritative phase roadmap are in
 > `CURRENT_STATE_AND_ROADMAP.md` and root `SPEC.md`. Historical tool names below are candidate
 > future concepts, not the active contract.
 
@@ -249,7 +249,7 @@ not silently overwrite it.
 
 ## 8. Simulator data domains
 
-The demo needs a deterministic local warehouse simulator. The current P1A implementation uses
+The original P1A design used a deterministic local warehouse simulator and
 Android SQLite directly; no warehouse-management backend is needed initially.
 
 ### Master data
@@ -544,14 +544,14 @@ paraphrase—to prevent leakage.
 
 ## 17. Suggested implementation sequence
 
-1. Preserve completed P0 and P1A as the deterministic baseline.
+1. Preserve the tested audio, repository and policy boundaries as the baseline.
 2. Generate, train, evaluate and export the P1B generative tool caller through LQH.
-3. Replace the contract simulator only after locked evaluation and export checks pass.
+3. Keep the trained action model behind the locked parser, policy and export checks.
 4. Measure lexical/SQLite catalog resolution before starting P1C semantic retrieval.
 5. Evaluate real warehouse audio before deciding whether P1D audio adaptation is needed.
 6. Add local sync states only when a connected workflow becomes part of the demo.
-7. Implement the frozen P1B five-tool contract only after its data, evaluation and export gates
-   pass; retain the two-tool P1A simulator as the rollback baseline.
+7. Keep the frozen P1B five-tool contract behind deterministic parsing, policy and confirmation
+   gates after its data, evaluation and export checks pass.
 8. Add the connected shift story and resettable fixture.
 9. Add VLM-450M still-image evidence only after the audio/tool loop is stable.
 

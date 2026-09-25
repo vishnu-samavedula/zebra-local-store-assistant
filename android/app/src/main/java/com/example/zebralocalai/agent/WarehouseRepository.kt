@@ -108,13 +108,15 @@ class SqliteWarehouseRepository(context: Context, databaseName: String = "wareho
   override fun createIssue(proposal: ToolProposal, sourceTranscript: String): StoredIssue {
     require(proposal.tool == P1Tool.REPORT_ISSUE)
     val category = proposal.arguments.getValue("category")
-    val productId = proposal.arguments.getValue("product_id")
-    val quantity = proposal.arguments.getValue("quantity").toInt()
+    val productId = proposal.arguments["product_id"]
+    val quantity = proposal.arguments["quantity"]?.toInt()
     val location = proposal.arguments.getValue("location")
-    val product = productLabel(productId)
+    val product = productId?.let(::productLabel)
     val status = proposal.arguments["status"] ?: "OPEN"
     val priority = proposal.arguments["priority"] ?: issuePriorityFor(category)
-    val description = proposal.arguments["description"] ?: "$quantity ${category.replace('_', ' ')} unit(s) for $product at $location"
+    val description =
+      proposal.arguments["description"]
+        ?: listOfNotNull(quantity?.toString(), category.replace('_', ' '), product, "at $location").joinToString(" ")
     val createdAt = System.currentTimeMillis()
     val db = database.writableDatabase
     db.beginTransaction()
@@ -126,8 +128,8 @@ class SqliteWarehouseRepository(context: Context, databaseName: String = "wareho
           put("category", category)
           put("status", status)
           put("priority", priority)
-          put("product_id", productId)
-          put("quantity", quantity)
+          if (productId == null) putNull("product_id") else put("product_id", productId)
+          if (quantity == null) putNull("quantity") else put("quantity", quantity)
           put("location", location)
           put("source_transcript", sourceTranscript)
           put("payload_json", "{}")
@@ -144,9 +146,9 @@ class SqliteWarehouseRepository(context: Context, databaseName: String = "wareho
           .put("category", category)
           .put("status", status)
           .put("priority", priority)
-          .put("product_id", productId)
+          .put("product_id", productId ?: JSONObject.NULL)
           .put("sku", proposal.arguments["sku"])
-          .put("quantity", quantity)
+          .put("quantity", quantity ?: JSONObject.NULL)
           .put("location", location)
           .put("source_transcript", sourceTranscript)
           .put("created_at_epoch_ms", createdAt)
@@ -283,8 +285,8 @@ class SqliteWarehouseRepository(context: Context, databaseName: String = "wareho
       category = string("category"),
       status = string("status"),
       priority = string("priority"),
-      productId = string("product_id"),
-      quantity = int("quantity"),
+      productId = nullableString("product_id"),
+      quantity = nullableInt("quantity"),
       location = string("location"),
       sourceTranscript = string("source_transcript"),
       payloadJson = string("payload_json"),
@@ -341,7 +343,7 @@ class SqliteWarehouseRepository(context: Context, databaseName: String = "wareho
   }
 }
 
-private class WarehouseDatabase(context: Context, databaseName: String) : SQLiteOpenHelper(context, databaseName, null, 4) {
+private class WarehouseDatabase(context: Context, databaseName: String) : SQLiteOpenHelper(context, databaseName, null, 5) {
   private val appContext = context.applicationContext
 
   override fun onConfigure(db: SQLiteDatabase) {
@@ -381,8 +383,8 @@ private class WarehouseDatabase(context: Context, databaseName: String) : SQLite
         category TEXT NOT NULL,
         status TEXT NOT NULL,
         priority TEXT NOT NULL,
-        product_id TEXT NOT NULL,
-        quantity INTEGER NOT NULL,
+        product_id TEXT,
+        quantity INTEGER,
         location TEXT NOT NULL,
         source_transcript TEXT NOT NULL,
         payload_json TEXT NOT NULL,
@@ -406,6 +408,42 @@ private class WarehouseDatabase(context: Context, databaseName: String) : SQLite
     }
     if (oldVersion < 3) createReplenishmentsTable(db)
     if (oldVersion < 4) addColumnIfMissing(db, "replenishment_requests", "units_to_move", "INTEGER NOT NULL DEFAULT 0")
+    if (oldVersion < 5) migrateIssuesToOptionalProduct(db)
+  }
+
+  private fun migrateIssuesToOptionalProduct(db: SQLiteDatabase) {
+    db.execSQL("ALTER TABLE issues RENAME TO issues_legacy")
+    db.execSQL(
+      """
+      CREATE TABLE issues (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        issue_code TEXT NOT NULL UNIQUE,
+        description TEXT NOT NULL,
+        category TEXT NOT NULL,
+        status TEXT NOT NULL,
+        priority TEXT NOT NULL,
+        product_id TEXT,
+        quantity INTEGER,
+        location TEXT NOT NULL,
+        source_transcript TEXT NOT NULL,
+        payload_json TEXT NOT NULL,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL,
+        FOREIGN KEY(product_id) REFERENCES products(product_id)
+      )
+      """.trimIndent(),
+    )
+    db.execSQL(
+      """
+      INSERT INTO issues
+        (id, issue_code, description, category, status, priority, product_id, quantity, location,
+         source_transcript, payload_json, created_at, updated_at)
+      SELECT id, issue_code, description, category, status, priority, product_id, quantity, location,
+             source_transcript, payload_json, created_at, updated_at
+      FROM issues_legacy
+      """.trimIndent(),
+    )
+    db.execSQL("DROP TABLE issues_legacy")
   }
 
   private fun createTasksTable(db: SQLiteDatabase) {
@@ -565,8 +603,8 @@ class InMemoryWarehouseRepository : WarehouseRepository {
         category = category,
         status = "OPEN",
         priority = issuePriorityFor(category),
-        productId = proposal.arguments.getValue("product_id"),
-        quantity = proposal.arguments.getValue("quantity").toInt(),
+        productId = proposal.arguments["product_id"],
+        quantity = proposal.arguments["quantity"]?.toInt(),
         location = proposal.arguments.getValue("location"),
         sourceTranscript = sourceTranscript,
         payloadJson = "",
@@ -575,7 +613,11 @@ class InMemoryWarehouseRepository : WarehouseRepository {
     val completed =
       issue.copy(
         payloadJson =
-          "{\"tool\":\"report_issue\",\"issue_id\":\"${issueId.jsonEscape()}\",\"description\":\"${issue.description.jsonEscape()}\",\"category\":\"${category.jsonEscape()}\",\"status\":\"OPEN\",\"priority\":\"${issue.priority}\",\"product_id\":\"${issue.productId.jsonEscape()}\",\"quantity\":${issue.quantity},\"location\":\"${issue.location.jsonEscape()}\"}",
+          "{\"tool\":\"report_issue\",\"issue_id\":\"${issueId.jsonEscape()}\"," +
+            "\"description\":\"${issue.description.jsonEscape()}\",\"category\":\"${category.jsonEscape()}\"," +
+            "\"status\":\"OPEN\",\"priority\":\"${issue.priority.jsonEscape()}\"," +
+            "\"product_id\":${issue.productId?.let { "\"${it.jsonEscape()}\"" } ?: "null"}," +
+            "\"quantity\":${issue.quantity ?: "null"},\"location\":\"${issue.location.jsonEscape()}\"}",
       )
     issues[issueId] = completed
     return completed
@@ -642,6 +684,9 @@ private fun Cursor.nullableString(column: String): String? =
   getColumnIndexOrThrow(column).let { index -> if (isNull(index)) null else getString(index) }
 
 private fun Cursor.int(column: String) = getInt(getColumnIndexOrThrow(column))
+
+private fun Cursor.nullableInt(column: String): Int? =
+  getColumnIndexOrThrow(column).let { index -> if (isNull(index)) null else getInt(index) }
 
 private fun Cursor.long(column: String) = getLong(getColumnIndexOrThrow(column))
 

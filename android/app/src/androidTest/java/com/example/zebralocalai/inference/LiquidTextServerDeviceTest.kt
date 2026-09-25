@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.zebralocalai.agent.GenerativeWarehouseAgent
+import com.example.zebralocalai.agent.P1ConversationSession
 import com.example.zebralocalai.agent.P1Risk
 import com.example.zebralocalai.agent.SqliteWarehouseRepository
 import com.example.zebralocalai.agent.ToolCallState
@@ -26,12 +27,104 @@ class LiquidTextServerDeviceTest {
   )
 
   @Test
+  fun threeIndependentInventoryReadsCompleteWithoutTruncation() {
+    val context = ApplicationProvider.getApplicationContext<Context>()
+    val databaseName = "warehouse-three-read-device-test.db"
+    context.deleteDatabase(databaseName)
+    val model = P1BModel.from(File(context.filesDir, "models/lfm25-p1b"))
+    assertTrue("Trained P1B model is not staged", model.isRunnable)
+
+    val runner = LiquidTextRunner(context)
+    val agent = GenerativeWarehouseAgent(SqliteWarehouseRepository(context, databaseName))
+    try {
+      val prompt =
+        "Give me the location of Harbor Classic T-shirts, Metro Zip Wallets, and Metro Run Sneaker."
+      val inference = runner.infer(model, prompt)
+
+      assertTrue("Three-read output was truncated: ${inference.rawOutput.take(1000)}", inference.finishReason != "length")
+      assertTrue("Three-read output was malformed: ${inference.rawOutput.take(1000)}", !inference.malformedToolCall)
+      assertEquals(3, inference.toolCalls.size)
+      assertTrue(inference.toolCalls.all { it.tool.wireName == "inventory_search" })
+
+      val result = agent.process(prompt, inference)
+      assertEquals(3, result.toolCalls.size)
+      assertTrue(result.toolCalls.all { it.state == ToolCallState.VERIFIED })
+      assertTrue(result.message.contains("Harbor Classic T-Shirt"))
+      assertTrue(result.message.contains("Metro Zip Wallet"))
+      assertTrue(result.message.contains("MetroRun Sneaker"))
+    } finally {
+      runner.shutdown()
+      context.deleteDatabase(databaseName)
+    }
+  }
+
+  @Test
+  fun conversationalContinuationCompletesMissingReplenishmentFields() {
+    val context = ApplicationProvider.getApplicationContext<Context>()
+    val databaseName = "warehouse-conversation-device-test.db"
+    context.deleteDatabase(databaseName)
+    val model = P1BModel.from(File(context.filesDir, "models/lfm25-p1b"))
+    assertTrue("Trained P1B model is not staged", model.isRunnable)
+
+    val runner = LiquidTextRunner(context)
+    val agent = GenerativeWarehouseAgent(SqliteWarehouseRepository(context, databaseName))
+    try {
+      val firstWorkerTurn = "Request replenishment for SKU-2202-NVY-M."
+      val firstInference = runner.infer(model, firstWorkerTurn)
+      val firstResult = agent.process(firstWorkerTurn, firstInference)
+      assertTrue("Incomplete request must not create a proposal", firstResult.proposal == null)
+
+      var session = P1ConversationSession().record(firstWorkerTurn, firstResult)
+      val followUp = session.request("Add exactly 12 units to B2-04.")
+      val secondInference = runner.infer(model, followUp.modelInput)
+      val secondResult = agent.process(followUp.auditTranscript, secondInference)
+      session = session.record("Add exactly 12 units to B2-04.", secondResult)
+
+      assertEquals("request_replenishment", secondResult.toolCalls.single().tool.wireName)
+      assertEquals(
+        "Continuation did not produce a complete proposal. calls=${secondInference.toolCalls} missing=${secondResult.prediction.missingFields} raw=${secondInference.rawOutput.take(800)}",
+        P1Risk.CONFIRM_REQUIRED,
+        secondResult.prediction.risk,
+      )
+      assertEquals("SKU-2202-NVY-M", secondResult.proposal?.arguments?.get("sku"))
+      assertEquals("12", secondResult.proposal?.arguments?.get("quantity"))
+      assertEquals("B2-04", secondResult.proposal?.arguments?.get("destination_location"))
+      assertEquals(2, session.turns.size)
+      assertTrue("A third bounded turn should remain available", session.canContinue)
+
+      val correction = session.request("Actually make that 14 units.")
+      val correctionInference = runner.infer(model, correction.modelInput)
+      val correctionResult = agent.process(correction.auditTranscript, correctionInference)
+      session = session.record("Actually make that 14 units.", correctionResult)
+      assertEquals("request_replenishment", correctionResult.toolCalls.single().tool.wireName)
+      assertEquals(P1Risk.CONFIRM_REQUIRED, correctionResult.prediction.risk)
+      assertEquals("14", correctionResult.proposal?.arguments?.get("quantity"))
+      assertEquals("B2-04", correctionResult.proposal?.arguments?.get("destination_location"))
+      assertTrue("A three-turn request must stop accepting follow-ups", !session.canContinue)
+
+      val readWorkerTurn = "How many black GTX shoes size 10 do we have?"
+      val readResult = agent.process(readWorkerTurn, runner.infer(model, readWorkerTurn))
+      assertTrue(readResult.toolCalls.all { it.state == ToolCallState.VERIFIED })
+      val readSession = P1ConversationSession().record(readWorkerTurn, readResult)
+      val expandedRead = readSession.request("Also check blue GTX shoes size 10.5.")
+      val expandedInference = runner.infer(model, expandedRead.modelInput)
+      val expandedResult = agent.process(expandedRead.auditTranscript, expandedInference)
+      assertTrue("Expanded read emitted no inventory call: ${expandedInference.rawOutput.take(800)}", expandedInference.toolCalls.isNotEmpty())
+      assertTrue(expandedInference.toolCalls.all { it.tool.wireName == "inventory_search" })
+      assertTrue("Expanded read did not resolve the blue variant: ${expandedResult.message}", expandedResult.message.contains("Blue"))
+    } finally {
+      runner.shutdown()
+      context.deleteDatabase(databaseName)
+    }
+  }
+
+  @Test
   fun trainedCheckpointProducesAllFiveNativeToolsColdThenWarm() {
     val context = ApplicationProvider.getApplicationContext<Context>()
     val databaseName = "warehouse-model-device-test.db"
     context.deleteDatabase(databaseName)
     val model = P1BModel.from(File(context.filesDir, "models/lfm25-p1b"))
-    assertTrue("Trained P1B Q8_0 model is not staged", model.isRunnable)
+    assertTrue("Trained P1B model is not staged", model.isRunnable)
 
     val runner = LiquidTextRunner(context)
     val agent = GenerativeWarehouseAgent(SqliteWarehouseRepository(context, databaseName))
@@ -139,7 +232,7 @@ class LiquidTextServerDeviceTest {
   fun schemaAblationSmoke() {
     val context = ApplicationProvider.getApplicationContext<Context>()
     val model = P1BModel.from(File(context.filesDir, "models/lfm25-p1b"))
-    assertTrue("Trained P1B Q8_0 model is not staged", model.isRunnable)
+    assertTrue("Trained P1B model is not staged", model.isRunnable)
     val runner = LiquidTextRunner(context)
     val cases =
       listOf(

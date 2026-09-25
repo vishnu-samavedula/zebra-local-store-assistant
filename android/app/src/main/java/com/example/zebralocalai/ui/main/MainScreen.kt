@@ -27,10 +27,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -53,86 +50,7 @@ import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
-  state: P0UiState,
-  p1State: P1UiState,
-  selectedTab: Int,
-  onSelectTab: (Int) -> Unit,
-  onImportModels: () -> Unit,
-  onTalk: () -> Unit,
-  onP1Talk: () -> Unit,
-  onCancel: () -> Unit,
-  onP1Cancel: () -> Unit,
-  onClear: () -> Unit,
-  onP1Clear: () -> Unit,
-  onConfirmP1: () -> Unit,
-  onCancelP1Action: () -> Unit,
-  onP1Task: (String) -> Unit,
-) {
-  Scaffold { insets ->
-    Column(Modifier.fillMaxSize().padding(insets)) {
-      TabRow(selectedTabIndex = selectedTab) {
-        Tab(selected = selectedTab == 0, onClick = { onSelectTab(0) }, text = { Text("P0 · Talk") })
-        Tab(selected = selectedTab == 1, onClick = { onSelectTab(1) }, text = { Text("P1 · Store agent") })
-      }
-      if (selectedTab == 0) {
-        P0Content(state, onImportModels, onTalk, onCancel, onClear)
-      } else {
-        P1Content(
-          p1State,
-          state.importedFiles.size,
-          onImportModels,
-          onP1Talk,
-          onP1Cancel,
-          onP1Clear,
-          onConfirmP1,
-          onCancelP1Action,
-          onP1Task,
-        )
-      }
-    }
-  }
-}
-
-@Composable
-private fun P0Content(
-  state: P0UiState,
-  onImportModels: () -> Unit,
-  onTalk: () -> Unit,
-  onCancel: () -> Unit,
-  onClear: () -> Unit,
-) {
-  Column(
-    modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp).verticalScroll(rememberScrollState()),
-    horizontalAlignment = Alignment.CenterHorizontally,
-    verticalArrangement = Arrangement.spacedBy(16.dp),
-  ) {
-    Spacer(Modifier.height(10.dp))
-    Text("Zebra Local AI", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold, modifier = Modifier.fillMaxWidth())
-    P0StatusCard(state)
-    if (state.phase == P0Phase.MODEL_MISSING) {
-      Button(onClick = onImportModels, modifier = Modifier.fillMaxWidth()) { Text("Import LFM2.5-Audio model files") }
-    }
-    TalkButton(state.phase == P0Phase.RECORDING, state.phase in setOf(P0Phase.READY, P0Phase.RECORDING, P0Phase.COMPLETE, P0Phase.ERROR), onTalk)
-    if (state.phase == P0Phase.PROCESSING) Processing("Running local audio inference…", onCancel)
-    if (state.response.isNotBlank()) {
-      Card(modifier = Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-          Text("Zebra", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
-          Text(state.response, style = MaterialTheme.typography.bodyLarge)
-          AudioMetrics(state.audioMetricsText())
-          TextButton(onClick = onClear, modifier = Modifier.align(Alignment.End)) { Text("Clear") }
-        }
-      }
-    }
-    PrivacyNote()
-    Spacer(Modifier.height(16.dp))
-  }
-}
-
-@Composable
-private fun P1Content(
-  state: P1UiState,
-  importedFileCount: Int,
+  state: StoreAssistantUiState,
   onImportModels: () -> Unit,
   onTalk: () -> Unit,
   onCancel: () -> Unit,
@@ -141,9 +59,38 @@ private fun P1Content(
   onCancelAction: () -> Unit,
   onTask: (String) -> Unit,
 ) {
+  Scaffold { insets ->
+    StoreAssistantContent(
+      state,
+      onImportModels,
+      onTalk,
+      onCancel,
+      onClear,
+      onConfirm,
+      onCancelAction,
+      onTask,
+      onTalk,
+      Modifier.padding(insets),
+    )
+  }
+}
+
+@Composable
+private fun StoreAssistantContent(
+  state: StoreAssistantUiState,
+  onImportModels: () -> Unit,
+  onTalk: () -> Unit,
+  onCancel: () -> Unit,
+  onClear: () -> Unit,
+  onConfirm: () -> Unit,
+  onCancelAction: () -> Unit,
+  onTask: (String) -> Unit,
+  onContinue: () -> Unit,
+  modifier: Modifier = Modifier,
+) {
   val hasResult = state.transcript.isNotBlank() && state.result != null
   Column(
-    modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+    modifier = modifier.fillMaxSize().verticalScroll(rememberScrollState()),
     verticalArrangement = Arrangement.spacedBy(12.dp),
   ) {
     StoreHeader()
@@ -163,7 +110,7 @@ private fun P1Content(
         Box(Modifier.padding(24.dp)) { Processing(state.status, onCancel) }
       }
     } else if (hasResult) {
-      ResultCard(state, onClear, onConfirm, onCancelAction)
+      ResultCard(state, onClear, onConfirm, onCancelAction, onContinue)
     } else {
       VoiceHero(state, onTalk)
       CommonTasks(
@@ -177,7 +124,7 @@ private fun P1Content(
         color = MaterialTheme.colorScheme.surfaceVariant,
       ) {
         Text(
-          "On-device · audio $importedFileCount/4 · P1B Q8_0 · 5 allowlisted tools",
+          "On-device · audio ${state.importedAudioFiles.size}/4 · P1B Q4_K · 5 allowlisted tools",
           modifier = Modifier.padding(14.dp),
           style = MaterialTheme.typography.bodySmall,
           textAlign = TextAlign.Center,
@@ -191,14 +138,33 @@ private fun P1Content(
 
 @Composable
 private fun ResultCard(
-  state: P1UiState,
+  state: StoreAssistantUiState,
   onClear: () -> Unit,
   onConfirm: () -> Unit,
   onCancelAction: () -> Unit,
+  onContinue: () -> Unit,
 ) {
   val result = state.result ?: return
   Card(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp), shape = RoundedCornerShape(22.dp)) {
     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+      if (state.conversationTurns.isNotEmpty()) {
+        Text(
+          "REQUEST · TURN ${state.conversationTurns.size}/${com.example.zebralocalai.agent.P1ConversationSession.MAX_TURNS}",
+          style = MaterialTheme.typography.labelSmall,
+          color = MaterialTheme.colorScheme.primary,
+        )
+      }
+      if (state.conversationTurns.size > 1) {
+        Surface(shape = RoundedCornerShape(14.dp), color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.65f)) {
+          Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+            Text("Earlier context", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
+            state.conversationTurns.dropLast(1).forEach { turn ->
+              Text("You: ${turn.workerText}", style = MaterialTheme.typography.bodySmall, maxLines = 2)
+              Text("Assistant: ${turn.assistantText}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 2)
+            }
+          }
+        }
+      }
       Text("YOU SAID", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
       Surface(shape = RoundedCornerShape(14.dp), color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.65f)) {
         Text(state.transcript, modifier = Modifier.padding(horizontal = 12.dp, vertical = 9.dp), style = MaterialTheme.typography.bodyMedium)
@@ -240,6 +206,19 @@ private fun ResultCard(
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
           OutlinedButton(onClick = onCancelAction, modifier = Modifier.weight(1f)) { Text("Cancel") }
           Button(onClick = onConfirm, modifier = Modifier.weight(1f)) { Text("Confirm") }
+        }
+      }
+
+      if (state.canContinue && state.phase in setOf(P1Phase.COMPLETE, P1Phase.AWAITING_CONFIRMATION, P1Phase.ERROR)) {
+        val needsDetails = result.prediction.missingFields.isNotEmpty()
+        OutlinedButton(onClick = onContinue, modifier = Modifier.fillMaxWidth()) {
+          Text(
+            when {
+              state.phase == P1Phase.AWAITING_CONFIRMATION -> "Change request by voice"
+              needsDetails -> "Add missing details"
+              else -> "Continue this request"
+            },
+          )
         }
       }
 
@@ -371,7 +350,7 @@ private fun StoreHeader() {
 }
 
 @Composable
-private fun VoiceHero(state: P1UiState, onTalk: () -> Unit) {
+private fun VoiceHero(state: StoreAssistantUiState, onTalk: () -> Unit) {
   val recording = state.phase == P1Phase.RECORDING
   val enabled = state.phase in setOf(P1Phase.READY, P1Phase.RECORDING, P1Phase.COMPLETE, P1Phase.ERROR)
   Column(
@@ -436,36 +415,6 @@ private fun MicrophoneMark(modifier: Modifier = Modifier) {
     )
     drawLine(Color.White, Offset(size.width * 0.5f, size.height * 0.78f), Offset(size.width * 0.5f, size.height * 0.94f), stroke, StrokeCap.Round)
     drawLine(Color.White, Offset(size.width * 0.34f, size.height * 0.94f), Offset(size.width * 0.66f, size.height * 0.94f), stroke, StrokeCap.Round)
-  }
-}
-
-@Composable
-private fun RecipeCard(products: List<ProductCandidate>) {
-  if (products.isEmpty()) return
-  val locationExample = products.firstOrNull { it.sku == "SKU-1842-BLU-105" } ?: products.first()
-  val stockExample = products.firstOrNull { it.name == "TrailBlaze GTX" && it.color == "Black" } ?: products.first()
-  val damageExample = products.firstOrNull { it.category == "packaging" } ?: products.first()
-  val discrepancyExample = products.firstOrNull { it.category == "safety" } ?: products.last()
-  val recipes =
-    listOf(
-      "Where is ${locationExample.sku}?",
-      "How many ${stockExample.color} ${stockExample.name} size ${stockExample.size} are available?",
-      "Report three damaged ${damageExample.name}, ${damageExample.sku}, at ${damageExample.location}",
-      "Report two missing ${discrepancyExample.name}, ${discrepancyExample.sku}, at ${discrepancyExample.location}",
-    )
-  Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-    Text("Try saying", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(horizontal = 20.dp))
-    Row(
-      Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 20.dp),
-      horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        recipes.forEach { recipe ->
-          Surface(shape = CircleShape, color = MaterialTheme.colorScheme.primaryContainer) {
-            Text(recipe, modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp))
-          }
-        }
-    }
-    Text("Swipe for more, then speak one naturally.", style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(horizontal = 20.dp))
   }
 }
 
@@ -541,18 +490,6 @@ private fun TaskCard(
 }
 
 @Composable
-private fun TalkButton(recording: Boolean, enabled: Boolean, onTalk: () -> Unit, idleLabel: String = "Say something") {
-  Button(
-    onClick = onTalk,
-    enabled = enabled,
-    modifier = Modifier.fillMaxWidth().height(76.dp),
-    colors = if (recording) ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error) else ButtonDefaults.buttonColors(),
-  ) {
-    Text(if (recording) "Stop & analyze" else idleLabel, style = MaterialTheme.typography.titleMedium)
-  }
-}
-
-@Composable
 private fun Processing(label: String, onCancel: () -> Unit) {
   Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
     CircularProgressIndicator()
@@ -570,7 +507,7 @@ private fun ReportField(label: String, value: String) {
 }
 
 @Composable
-private fun P1Metrics(state: P1UiState) {
+private fun P1Metrics(state: StoreAssistantUiState) {
   val result = state.result ?: return
   Surface(shape = RoundedCornerShape(14.dp), color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)) {
     Column(Modifier.padding(horizontal = 12.dp, vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
@@ -601,13 +538,6 @@ private fun MetricValue(label: String, value: String) {
 }
 
 @Composable
-private fun AudioMetrics(text: String) {
-  if (text.isNotBlank()) {
-    Text(text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-  }
-}
-
-@Composable
 private fun PrivacyNote() {
   Text(
     "Mic audio is temporary and deleted after local inference. No cloud services are used.",
@@ -615,20 +545,6 @@ private fun PrivacyNote() {
     textAlign = TextAlign.Center,
     modifier = Modifier.fillMaxWidth(),
   )
-}
-
-@Composable
-private fun P0StatusCard(state: P0UiState) {
-  Card(modifier = Modifier.fillMaxWidth()) {
-    Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-      Text("P0 · Audio in / text out", fontWeight = FontWeight.SemiBold)
-      Text(state.phase.name.replace('_', ' '), color = MaterialTheme.colorScheme.primary)
-      Text(state.status)
-      RuntimePills()
-      Text("Runtime: Persistent Liquid server", style = MaterialTheme.typography.bodySmall)
-      Text("Model files: ${state.importedFiles.size}/4", style = MaterialTheme.typography.bodySmall)
-    }
-  }
 }
 
 @Composable
@@ -653,12 +569,5 @@ private fun RuntimePill(label: String, active: Boolean) {
     )
   }
 }
-
-private fun P0UiState.audioMetricsText(): String =
-  buildList {
-    ttfsMillis?.let { add("TTFS ~$it ms") }
-    decodeTokensPerSecond?.let { add("Decode ${String.format(Locale.US, "%.1f", it)} tok/s") }
-    elapsedMillis?.let { add("Total ${formatSeconds(it)}") }
-  }.joinToString("  •  ")
 
 private fun formatSeconds(milliseconds: Long): String = String.format(Locale.US, "%.2f s", milliseconds / 1_000.0)

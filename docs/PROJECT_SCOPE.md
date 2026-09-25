@@ -24,9 +24,9 @@ The authoritative implementation status and phase roadmap are in
 | OS | Android 15 / API 35 |
 
 CPU inference is the correctness baseline. QNN/NPU work is a later measured optimization, not a
-dependency for P0 or P1.
+dependency for the current Store Assistant.
 
-## P0 — complete
+## Audio foundation — complete
 
 Prove local audio-model plumbing:
 
@@ -38,13 +38,13 @@ push-to-talk microphone
   -> TTFS/decode/total metrics
 ```
 
-P0 does not produce output audio, use cloud services or retain microphone clips.
+The app does not produce output audio, use cloud services or retain microphone clips.
 
-## P1A — complete
+## Deterministic foundation — complete
 
 Prove the deterministic application and tool foundation:
 
-- Store Assistant UI alongside the preserved P0 screen.
+- Single-purpose Store Assistant UI.
 - LFM Audio ASR.
 - Five-SKU JSON seed catalog and app-private SQLite database.
 - Deterministic product search.
@@ -52,14 +52,14 @@ Prove the deterministic application and tool foundation:
 - Confirmation-gated `report_issue` write tool.
 - Persistent issue IDs, policy fields, transcripts and JSON audit payloads.
 - Native validation, parameterized data access and read-back verification.
-- Replaceable decision interface with a deterministic simulator.
+- Strict application-owned parsing, policy and tool adapters.
 
 The worker sees a normal transcript, answer or report-review card—not the internal action schema.
 The passive common-task tiles communicate capability but do not execute tools.
 
-## P1B — next
+## P1B — integrated pilot
 
-Fine-tune the instruction-tuned generative `LiquidAI/LFM2.5-350M` using LQH. It receives the ASR
+The instruction-tuned generative `LiquidAI/LFM2.5-350M` was fine-tuned using LQH. It receives the ASR
 transcript and supports five tools: `inventory_search`, `location_contents`, `get_task_status`,
 `report_issue` and `request_replenishment`. It may emit up to three independent reads, perform
 dependent read chains through returned tool context, or propose one confirmation-gated write.
@@ -102,7 +102,7 @@ are a later experiment and do not remove the audit transcript.
 - No generated code, reflection, shell command, raw generated SQL or arbitrary Android intent is
   executed.
 
-## P1A acceptance record
+## Foundation acceptance record
 
 - Debug APK installs and launches on the physical TC501.
 - Four-file matched LFM Audio Q4 bundle loads from app-private storage.
@@ -112,7 +112,7 @@ are a later experiment and do not remove the audit transcript.
 - Unit tests cover search, reports, missing fields, spoken locations, verification and unsupported
   requests.
 - Temporary audio cleanup is implemented.
-- Final build retains P0/P1 tabs and performance metrics.
+- Final build exposes one Store Assistant experience with performance metrics.
 
 ## Explicit current non-goals
 

@@ -1,6 +1,6 @@
 # Developer Runbook
 
-Last updated: 2026-09-22. This runbook covers P0, the P1A foundation, and the integrated P1B pilot.
+Last updated: 2026-09-23. This runbook covers the Store Assistant and its integrated P1B pilot.
 Read [CURRENT_STATE_AND_ROADMAP.md](CURRENT_STATE_AND_ROADMAP.md) first.
 
 ## Repositories
@@ -83,7 +83,7 @@ back for manual testing.
 
 ## Model bundle
 
-P0/P1A uses the matched official LFM2.5-Audio-1.5B Q4 bundle:
+The Store Assistant uses the matched official LFM2.5-Audio-1.5B Q4 bundle:
 
 - `LFM2.5-Audio-1.5B-Q4_0.gguf`
 - `mmproj-LFM2.5-Audio-1.5B-Q4_0.gguf`
@@ -105,24 +105,12 @@ files/models/lfm25-audio-q4/
 
 Never check model weights into Git or bundle them into the APK.
 
-## P0 manual check
-
-1. Open **P0 · Talk**.
-2. Confirm model files show `4/4` and state is ready.
-3. Tap **Say something**, speak, then tap **Stop & analyze**.
-4. Confirm a concise local text response.
-5. Confirm TTFS in ms, decode tokens/second and total time.
-6. Repeat a warm turn and verify that the server/model is reused.
-7. Clear the result; this clears UI state but does not unload the model.
-
-App process death, reinstall or OS reclamation causes a cold load.
-
 ## P1B model and cold/warm lifecycle
 
-The deployed demo model is `models/LFM2.5-350M-P1B-SchemaFree-v4-Q8_0.gguf` (379,219,904 bytes,
-SHA-256 `649d93199edcbddb1dffe5013aaac6b7ffeede602208194bba2c175579bcc947`). Its
+The deployed demo model is `models/LFM2.5-350M-P1B-SchemaFree-v4-Q4_K.gguf` (229,314,496 bytes,
+SHA-256 `4e422546677f4a7c4280625a787f66348d37029e047bee5708dc6930a2f45b84`). Its
 app-private target is `files/models/lfm25-p1b/`. Android uses the frozen schema-free contract and
-sends no tool definitions during inference. Opening the P1 tab starts one explicit cold preparation of the
+sends no tool definitions during inference. Opening the app starts one explicit cold preparation of the
 audio and P1B servers. After it reports **both models warm and resident**, recording a request does
 not reload either model. Clearing a result also preserves the warm processes. App process death,
 an OS kill, or a server failure requires another cold preparation.
@@ -138,11 +126,22 @@ adb shell am instrument -w -r \
   com.example.zebralocalai.test/androidx.test.runner.AndroidJUnitRunner
 ```
 
-## P1A manual check
+## P1 store-agent manual check
 
-Open **P1 · Store agent**. The microphone sends an ASR transcript to P1B. The common-task tiles
+Open **Store Assistant**. The microphone sends an ASR transcript to P1B. The recipe tiles
 send their displayed text directly to the same P1B inference path for repeatable demos; neither
 route hardcodes a tool choice.
+
+For conversational continuation, start with `Request replenishment for SKU-2202-NVY-M`, tap
+**Add missing details**, then say `Add exactly 12 units to B2-04`. The second turn must produce a
+complete confirmation-gated proposal. **Change request by voice** can correct a pending proposal,
+for example `Actually make that 14 units`. A request is limited to three worker turns; **New
+request** clears its state. Confirming a write closes the session so inherited context cannot
+repeat a completed mutation.
+
+The P1B response budget is 256 tokens. This is intentionally bounded but large enough for three
+Liquid-native read calls even when the checkpoint emits null optional arguments. Any response
+ending with llama.cpp `stop_type=limit` is treated as truncated and executes nothing.
 
 ### Inventory read
 
@@ -156,11 +155,11 @@ Expected application flow:
 
 ```text
 ASR transcript
-  -> deterministic entity terms
-  -> current contract-simulator tool selection
-  -> inventory_search
-  -> SQLite catalog lookup
-  -> deterministic answer
+  -> trained P1B native tool inference
+  -> strict parser and policy validation
+  -> typed inventory_search request
+  -> parameterized SQLite catalog lookup
+  -> verified deterministic answer
 ```
 
 Expected fixture result is the black TrailBlaze GTX size 10 at A3-05 with 8 pairs available.
@@ -207,8 +206,8 @@ size, unit, barcode, location, aliases, inventory and extra attributes. The task
 same LQH-readable JSONL files and imports them into SQLite.
 
 Search currently performs exact four-digit SKU matching plus fixed lexical scoring over rows read
-from SQLite. Given the same transcript and database state, it is deterministic. The model does not
-generate SQL. When P1B is integrated, the intended order is:
+from SQLite. Given the same parsed request and database state, it is deterministic. The model does
+not generate SQL. The integrated P1B order is:
 
 ```text
 transcript
@@ -272,7 +271,7 @@ Do not lower a checkpoint to the TC501 until locked evaluation and quantization 
 
 ## Metrics
 
-P0/P1A UI metrics:
+Store Assistant UI metrics:
 
 - Audio TTFS in milliseconds.
 - Audio decode tokens/second.

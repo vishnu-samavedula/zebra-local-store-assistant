@@ -7,14 +7,20 @@ import kotlin.system.measureNanoTime
 class GenerativeWarehouseAgent(private val repository: WarehouseRepository) {
   fun process(transcript: String, inference: P1BInference): P1AgentResult {
     val calls = inference.toolCalls
+    if (inference.malformedToolCall || inference.finishReason == "length") {
+      return rejectedBlock(
+        transcript,
+        inference,
+        calls,
+        "I couldn't form a safe action. Please restate the product, quantity, and location.",
+      )
+    }
     if (calls.isEmpty()) {
-      val unsafeOutput = inference.malformedToolCall || inference.finishReason == "length"
       return result(
         transcript,
         P1Tool.NONE,
-        if (unsafeOutput) P1Risk.BLOCKED else P1Risk.SAFE,
-        if (unsafeOutput) "I couldn't form a safe action. Please restate the product, quantity, and location."
-        else inference.text.ifBlank { "I need a little more detail." },
+        P1Risk.SAFE,
+        inference.text.ifBlank { "I need a little more detail." },
         inference = inference,
       )
     }
@@ -158,28 +164,33 @@ class GenerativeWarehouseAgent(private val repository: WarehouseRepository) {
   private fun proposeIssue(transcript: String, call: ParsedNativeToolCall, inference: P1BInference): P1AgentResult {
     val args = call.arguments
     val category = args["category"] ?: "general"
-    val candidates = repository.search(args["semantic_query"] ?: transcript, args["sku"]?.removePrefix("SKU-")?.take(4))
     val quantity = args["quantity"]
     val location = args["location"]
     val productRequired = category in setOf("damage", "damaged_stock", "discrepancy", "inventory_discrepancy")
+    val productQuery = args["sku"] ?: args["semantic_query"] ?: transcript.takeIf { productRequired }
+    val candidates =
+      if (productQuery == null) emptyList()
+      else repository.search(productQuery, args["sku"]?.removePrefix("SKU-")?.take(4))
     val missing = buildList {
-      if (candidates.isEmpty()) add("a recognizable product")
+      if (productRequired && candidates.size != 1) add("one exact product or SKU")
+      if (!productRequired && productQuery != null && candidates.size > 1) add("one exact product or SKU")
       if (productRequired && quantity.isNullOrBlank()) add("quantity")
       if (location.isNullOrBlank()) add("location")
     }
     if (missing.isNotEmpty()) return clarification(transcript, call, inference, candidates, missing, "report")
-    val product = checkNotNull(candidates.firstOrNull())
-    val enriched =
-      linkedMapOf(
+    val product = candidates.singleOrNull()
+    val enriched = linkedMapOf(
         "description" to (args["description"] ?: "${quantity ?: "Reported"} affected unit(s) at $location"),
         "category" to category,
         "status" to "OPEN",
         "priority" to issuePriorityFor(category),
-        "product_id" to product.productId,
-        "sku" to product.sku,
-        "quantity" to (quantity ?: "0"),
         "location" to checkNotNull(location),
       )
+    product?.let {
+      enriched["product_id"] = it.productId
+      enriched["sku"] = it.sku
+    }
+    quantity?.let { enriched["quantity"] = it }
     args["task_id"]?.let { enriched["task_id"] = it }
     return proposalResult(transcript, call.tool, "Issue proposal ready for review.", enriched, candidates, inference)
   }
@@ -284,7 +295,6 @@ class GenerativeWarehouseAgent(private val repository: WarehouseRepository) {
     P1AgentResult(
       sourceTranscript = transcript,
       normalizedQuery = transcript,
-      entities = ExtractedEntities(),
       prediction = EncoderPrediction(tool, "p1b_generation", risk, 1.0, missing),
       candidates = candidates,
       proposal = proposal,

@@ -12,6 +12,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.RandomAccessFile
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicReference
 import kotlin.concurrent.thread
 
 class WavAudioRecorder(private val context: Context) {
@@ -25,6 +26,7 @@ class WavAudioRecorder(private val context: Context) {
   private var audioRecord: AudioRecord? = null
   private var writerThread: Thread? = null
   private var outputFile: File? = null
+  private val writerFailure = AtomicReference<Throwable?>(null)
 
   init {
     // Normal completion and cancellation delete recordings immediately. This
@@ -62,37 +64,67 @@ class WavAudioRecorder(private val context: Context) {
         AudioFormat.ENCODING_PCM_16BIT,
         bufferSize,
       )
-    check(recorder.state == AudioRecord.STATE_INITIALIZED) { "AudioRecord initialization failed" }
+    if (recorder.state != AudioRecord.STATE_INITIALIZED) {
+      recorder.release()
+      error("AudioRecord initialization failed")
+    }
 
     val file = File(context.cacheDir, "zebra-input-${System.currentTimeMillis()}.wav")
     outputFile = file
     audioRecord = recorder
     recording.set(true)
-    recorder.startRecording()
-    writerThread =
-      thread(name = "zebra-audio-recorder") {
-        FileOutputStream(file).use { output ->
-          output.write(ByteArray(44))
-          val buffer = ByteArray(bufferSize)
-          while (recording.get()) {
-            val count = recorder.read(buffer, 0, buffer.size, AudioRecord.READ_BLOCKING)
-            if (count > 0) output.write(buffer, 0, count)
+    writerFailure.set(null)
+    try {
+      recorder.startRecording()
+      writerThread =
+        thread(name = "zebra-audio-recorder") {
+          try {
+            FileOutputStream(file).use { output ->
+              output.write(ByteArray(44))
+              val buffer = ByteArray(bufferSize)
+              while (recording.get()) {
+                val count = recorder.read(buffer, 0, buffer.size, AudioRecord.READ_BLOCKING)
+                if (count > 0) output.write(buffer, 0, count)
+              }
+            }
+          } catch (failure: Throwable) {
+            writerFailure.compareAndSet(null, failure)
           }
         }
-      }
+    } catch (failure: Throwable) {
+      recording.set(false)
+      recorder.release()
+      audioRecord = null
+      outputFile = null
+      file.delete()
+      throw failure
+    }
     return file
   }
 
   fun stop(): File {
     check(recording.getAndSet(false)) { "Recording is not active" }
-    audioRecord?.stop()
-    writerThread?.join(3_000)
-    audioRecord?.release()
-    audioRecord = null
-    writerThread = null
+    try {
+      audioRecord?.stop()
+      writerThread?.join(3_000)
+      check(writerThread?.isAlive != true) { "Audio writer did not stop" }
+    } finally {
+      audioRecord?.release()
+      audioRecord = null
+      writerThread = null
+    }
     val file = checkNotNull(outputFile)
-    writeWavHeader(file)
-    return file
+    try {
+      writerFailure.getAndSet(null)?.let { throw IllegalStateException("Audio capture failed", it) }
+      check(file.length() > 44) { "No audio was captured" }
+      writeWavHeader(file)
+      outputFile = null
+      return file
+    } catch (failure: Throwable) {
+      file.delete()
+      outputFile = null
+      throw failure
+    }
   }
 
   fun cancel() {
@@ -105,6 +137,7 @@ class WavAudioRecorder(private val context: Context) {
     writerThread = null
     outputFile?.delete()
     outputFile = null
+    writerFailure.set(null)
   }
 
   private fun writeWavHeader(file: File) {

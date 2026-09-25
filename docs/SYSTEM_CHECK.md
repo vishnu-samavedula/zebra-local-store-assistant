@@ -51,7 +51,7 @@ pin it for the project.
 
 ## Android app dependencies by milestone
 
-### P0: Hello Zebra World
+### Android audio foundation
 
 - Kotlin and Android Gradle Plugin.
 - AndroidX Core KTX and Lifecycle.
@@ -61,7 +61,7 @@ pin it for the project.
 - A pinned `llama.cpp` source revision, built for `arm64-v8a` only.
 - A small official LFM2.5 GGUF checkpoint and a checked-in hash manifest.
 
-No Zebra SDK is required for P0. It is a normal APK installed with ADB.
+No Zebra SDK is required for the current app. It is a normal APK installed with ADB.
 
 ### P1: Audio input and one tool call
 
@@ -69,7 +69,8 @@ Add:
 
 - Android `AudioRecord`; this is a platform API and needs no third-party library.
 - `android.permission.RECORD_AUDIO` and runtime permission handling.
-- Kotlin serialization for strict parsing of the model's proposed tool call.
+- `org.json` plus an allowlisted parser for the model's proposed tool call; no serialization
+  plugin is required.
 - The matched LFM2.5-Audio GGUF main model and audio projector. Only add the
   tokenizer/vocoder files if testing generated audio rather than Android TTS.
 - Liquid's pinned LFM2.5-Audio Android arm64 runner for the first device proof.
@@ -105,7 +106,7 @@ Use the lightest supported interface for each feature:
 | Direct QCM6690 NPU execution | Qualcomm QNN SDK plus compatible backend/custom integration | Yes; explicitly deferred |
 
 Zebra recommends DataWedge rather than EMDK's barcode APIs for scanning. Therefore
-EMDK should not be added to P0 or P1. If a later requirement truly needs EMDK, pin
+EMDK should not be added to the current app. If a later requirement truly needs EMDK, pin
 the artifact version from Zebra's Maven repository; never use a floating `+`
 version. The EMDK runtime is built into modern Zebra OS images, so a separate
 runtime should not be copied into this repository.

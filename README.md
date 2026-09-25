@@ -12,10 +12,10 @@ An offline-first Android demo that runs Liquid AI models locally on a Zebra TC50
   <img src="docs/screenshots/store-agent-multi-read.png" width="360" alt="Two locally inferred and verified inventory searches">
 </p>
 
-The current build provides:
+The current build provides one focused Store Assistant experience:
 
-- `P0 · Talk`: microphone audio in, concise local text out.
-- `P1 · Store agent`: audio or recipe text to schema-free native tool calls.
+- Audio or recipe text to schema-free native tool calls, with bounded
+  three-turn clarification, expansion, and correction by voice.
 - Five allowlisted tools: `inventory_search`, `location_contents`, `get_task_status`, `report_issue`, and `request_replenishment`.
 - Parallel independent reads, with each call isolated during retrieval.
 - Confirmation before every write; reads execute immediately.
@@ -31,7 +31,7 @@ flowchart LR
     WAV --> Audio[LFM2.5-Audio 1.5B Q4<br/>persistent llama.cpp server · CPU]
     Audio --> Transcript[Text transcript]
     Recipes[On-screen recipe] --> ToolModel
-    Transcript --> ToolModel[LFM2.5-350M P1B v4 Q8_0<br/>schema-free tool inference · CPU]
+    Transcript --> ToolModel[LFM2.5-350M P1B v4 Q4_K<br/>schema-free tool inference · CPU]
     ToolModel --> Parser[Strict native-call parser<br/>allowlisted names + arguments]
     Parser --> Policy{Kotlin policy boundary}
     Policy -->|independent read| ReadAdapters[Inventory / location / task adapters]
@@ -73,12 +73,12 @@ The snapshot reported zero swap. Memory varies with request length, allocator st
 
 The active model set requires approximately **1.35 GiB** of app-private storage. The development device currently uses **1.71 GiB** because it also retains a previous 362 MiB P1B checkpoint. The synthetic SQLite database is only about 108 KiB and is not a meaningful part of either the RAM or storage footprint.
 
-Two persistent model processes are used in P1:
+Two persistent model processes are used:
 
 | Stage | Model artifact | Purpose |
 |---|---|---|
 | Audio | `LFM2.5-Audio-1.5B-Q4_0.gguf` plus projector, tokenizer, and vocoder | Speech understanding / transcription |
-| Tool agent | `LFM2.5-350M-P1B-SchemaFree-v4-Q8_0.gguf` | Native function-call generation |
+| Tool agent | `LFM2.5-350M-P1B-SchemaFree-v4-Q4_K.gguf` | Native function-call generation |
 
 Model weights and native `.so` runtime binaries are deliberately excluded from Git. Obtain them under their respective licenses and place/import them as described in the [developer runbook](docs/DEV_RUNBOOK.md). The MIT license in this repository covers this project's code and documentation only—not Liquid model weights or third-party runtime binaries.
 

@@ -98,6 +98,27 @@ class GenerativeWarehouseAgentTest {
   }
 
   @Test
+  fun `length limited output is blocked even when one call parsed`() {
+    val result =
+      agent.process(
+        "Check several items",
+        P1BInference(
+          "",
+          listOf(ParsedNativeToolCall(P1Tool.INVENTORY_SEARCH, mapOf("sku" to "SKU-1843-BLK-100"))),
+          10,
+          null,
+          null,
+          "{}",
+          "length",
+          true,
+        ),
+      )
+
+    assertEquals(P1Risk.BLOCKED, result.prediction.risk)
+    assertEquals(ToolCallState.CANCELLED, result.toolCalls.single().state)
+  }
+
+  @Test
   fun `mixed read and write block executes nothing`() {
     val result =
       agent.process(
@@ -114,6 +135,48 @@ class GenerativeWarehouseAgentTest {
     assertEquals(P1Risk.BLOCKED, result.prediction.risk)
     assertTrue(result.toolCalls.all { it.state == ToolCallState.CANCELLED })
     assertEquals(null, result.proposal)
+  }
+
+  @Test
+  fun `ambiguous issue product asks for an exact variant`() {
+    val result =
+      agent.process(
+        "Report one damaged TrailBlaze GTX at A3",
+        inference(
+          ParsedNativeToolCall(
+            P1Tool.REPORT_ISSUE,
+            mapOf(
+              "semantic_query" to "TrailBlaze GTX",
+              "category" to "damage",
+              "quantity" to "1",
+              "location" to "A3",
+            ),
+          ),
+        ),
+      )
+
+    assertEquals(P1Risk.SAFE, result.prediction.risk)
+    assertTrue(result.prediction.missingFields.contains("one exact product or SKU"))
+    assertEquals(null, result.proposal)
+  }
+
+  @Test
+  fun `location blockage does not invent a product`() {
+    val proposal =
+      agent.process(
+        "Report location Z9 blocked by a fallen pallet",
+        inference(
+          ParsedNativeToolCall(
+            P1Tool.REPORT_ISSUE,
+            mapOf("description" to "Fallen pallet blocks access", "category" to "blocked_location", "location" to "Z9"),
+          ),
+        ),
+      )
+
+    assertEquals(P1Risk.CONFIRM_REQUIRED, proposal.prediction.risk)
+    assertTrue("product_id" !in checkNotNull(proposal.proposal).arguments)
+    val confirmed = agent.confirm(proposal)
+    assertTrue(confirmed.message.startsWith("Issue ISS-"))
   }
 
   private fun inference(vararg calls: ParsedNativeToolCall) =

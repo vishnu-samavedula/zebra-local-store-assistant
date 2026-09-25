@@ -1,4 +1,8 @@
-# P1A Store Agent Contract
+# Historical P1A Store Agent Contract
+
+> Archived design record. The deterministic simulator described below has been removed from the
+> application. The live Store Assistant contract and implementation status are documented in
+> [CURRENT_STATE_AND_ROADMAP.md](CURRENT_STATE_AND_ROADMAP.md).
 
 ## Outcome
 
@@ -105,7 +109,8 @@ An issue report uses:
 Error and cancellation paths return to a recoverable state. Clear removes the visible interaction
 but does not unload the persistent audio model.
 
-The common-task tiles and query recipes are passive capability cues. They do not execute tools.
+This was true for the original P1A screen. The current recipe tiles submit text to the trained P1B
+inference path and are not hardcoded tool shortcuts.
 
 ## Metrics
 

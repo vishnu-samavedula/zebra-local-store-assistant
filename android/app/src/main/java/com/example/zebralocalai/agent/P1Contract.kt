@@ -45,20 +45,6 @@ data class ProductCandidate(
   val available: Int get() = onHand - reserved
 }
 
-data class ExtractedEntities(
-  val sku: String? = null,
-  val quantity: Int? = null,
-  val location: String? = null,
-  val issueCategory: String? = null,
-)
-
-/** Legacy P1A boundary retained while P1B replaces the simulator with the generative model. */
-data class EncoderInput(
-  val transcript: String,
-  val entities: ExtractedEntities,
-  val catalogCandidates: List<ProductCandidate>,
-)
-
 data class EncoderPrediction(
   val tool: P1Tool,
   val intent: String,
@@ -81,7 +67,6 @@ data class P1Timings(
 data class P1AgentResult(
   val sourceTranscript: String,
   val normalizedQuery: String,
-  val entities: ExtractedEntities,
   val prediction: EncoderPrediction,
   val candidates: List<ProductCandidate>,
   val proposal: ToolProposal?,
@@ -97,8 +82,8 @@ data class StoredIssue(
   val category: String,
   val status: String,
   val priority: String,
-  val productId: String,
-  val quantity: Int,
+  val productId: String?,
+  val quantity: Int?,
   val location: String,
   val sourceTranscript: String,
   val payloadJson: String,
@@ -148,8 +133,4 @@ interface WarehouseRepository {
   fun createReplenishment(proposal: ToolProposal, sourceTranscript: String): StoredReplenishment
 
   fun getReplenishment(requestId: String): StoredReplenishment?
-}
-
-interface P1IntentEncoder {
-  fun classify(input: EncoderInput): EncoderPrediction
 }

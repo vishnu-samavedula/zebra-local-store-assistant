@@ -31,7 +31,10 @@ enum class ToolPromptMode { FULL_SCHEMA, COMPACT_SIGNATURES, SCHEMA_FREE }
 class LiquidTextRunner(private val context: Context) {
   companion object {
     private const val SERVER_START_TIMEOUT_MS = 60_000L
-    private const val MAX_GENERATED_TOKENS = 128
+    private const val TOOL_CALL_END = "<|tool_call_end|>"
+    // Three Liquid-native read calls currently take about 160 tokens because the trained
+    // checkpoint includes null optional arguments. Keep enough bounded headroom for all three.
+    private const val MAX_GENERATED_TOKENS = 256
   }
 
   @Volatile private var serverProcess: Process? = null
@@ -40,7 +43,7 @@ class LiquidTextRunner(private val context: Context) {
   private val serverLog = StringBuilder()
 
   fun warmup(model: P1BModel) {
-    check(model.isRunnable) { "Import the trained P1B Q8_0 model before warming the store agent" }
+    check(model.isRunnable) { "Import the trained P1B model before warming the store agent" }
     ensureServer(model)
   }
 
@@ -49,7 +52,7 @@ class LiquidTextRunner(private val context: Context) {
     transcript: String,
     promptMode: ToolPromptMode = ToolPromptMode.SCHEMA_FREE,
   ): P1BInference {
-    check(model.isRunnable) { "Import the trained P1B Q8_0 model before using the store agent" }
+    check(model.isRunnable) { "Import the trained P1B model before using the store agent" }
     val started = System.nanoTime()
     val port = ensureServer(model)
     val messages =
@@ -72,7 +75,9 @@ class LiquidTextRunner(private val context: Context) {
         .put("temperature", 0)
         .put("repeat_penalty", 1.1)
         .put("repeat_last_n", 128)
-        .put("stop", JSONArray().put("<|im_end|>"))
+        // A tool-call block is complete only after its full (possibly multi-call) array.
+        // Stop there instead of decoding through the following assistant-turn boundary.
+        .put("stop", JSONArray().put(TOOL_CALL_END).put("<|im_end|>"))
         .put("cache_prompt", true)
     val response = postJson(port, "/completion", request)
     val content = response.optString("content").takeUnless { it == "null" }.orEmpty().trim()
@@ -83,7 +88,8 @@ class LiquidTextRunner(private val context: Context) {
         content
       }
     val calls = LiquidNativeToolParser.parse(nativeOutput)
-    val stoppedAtLimit = response.optBoolean("stopped_limit", false)
+    val stopType = response.optString("stop_type", "stop")
+    val stoppedAtLimit = response.optBoolean("stopped_limit", false) || stopType == "limit"
     val attemptedToolCall =
       content.startsWith('[') || content.contains("<|tool_call_start|>") || content.contains("<|tool_call_end|>")
     val timings = response.optJSONObject("timings")
@@ -94,7 +100,7 @@ class LiquidTextRunner(private val context: Context) {
       promptTokensPerSecond = timings?.optDoubleOrNull("prompt_per_second"),
       decodeTokensPerSecond = timings?.optDoubleOrNull("predicted_per_second"),
       rawOutput = response.toString(),
-      finishReason = if (stoppedAtLimit) "length" else response.optString("stop_type", "stop"),
+      finishReason = if (stoppedAtLimit) "length" else stopType,
       malformedToolCall = stoppedAtLimit || (attemptedToolCall && calls.isEmpty()),
       promptTokens = timings?.optIntOrNull("prompt_n"),
       predictedTokens = timings?.optIntOrNull("predicted_n"),

@@ -9,18 +9,25 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.zebralocalai.agent.P1AgentResult
+import com.example.zebralocalai.agent.P1ConversationSession
+import com.example.zebralocalai.agent.P1ConversationTurn
 import com.example.zebralocalai.agent.P1Risk
 import com.example.zebralocalai.agent.ToolCallState
 import com.example.zebralocalai.agent.GenerativeWarehouseAgent
 import com.example.zebralocalai.agent.SqliteWarehouseRepository
 import com.example.zebralocalai.audio.WavAudioRecorder
 import com.example.zebralocalai.inference.AudioInferenceMode
+import com.example.zebralocalai.inference.InferenceResult
 import com.example.zebralocalai.inference.LiquidAudioRunner
 import com.example.zebralocalai.inference.LiquidTextRunner
 import com.example.zebralocalai.inference.ModelBundle
 import com.example.zebralocalai.inference.P1BModel
 import java.io.File
+import java.nio.file.AtomicMoveNotSupportedException
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
 import java.security.MessageDigest
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,10 +35,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-
-enum class P0Phase { MODEL_MISSING, READY, RECORDING, PROCESSING, COMPLETE, ERROR }
-
-enum class Experience { P0, P1 }
 
 enum class P1Phase {
   MODEL_MISSING,
@@ -43,18 +46,7 @@ enum class P1Phase {
   ERROR,
 }
 
-data class P0UiState(
-  val phase: P0Phase = P0Phase.MODEL_MISSING,
-  val status: String = "Import the matched LFM2.5-Audio Q4 model files.",
-  val response: String = "",
-  val microphonePermissionGranted: Boolean = false,
-  val importedFiles: Set<String> = emptySet(),
-  val elapsedMillis: Long? = null,
-  val ttfsMillis: Long? = null,
-  val decodeTokensPerSecond: Double? = null,
-)
-
-data class P1UiState(
+data class StoreAssistantUiState(
   val phase: P1Phase = P1Phase.MODEL_MISSING,
   val status: String = "Import the matched LFM2.5-Audio Q4 model files.",
   val transcript: String = "",
@@ -68,43 +60,47 @@ data class P1UiState(
   val modelsWarm: Boolean = false,
   val coldLoadMillis: Long? = null,
   val catalog: List<com.example.zebralocalai.agent.ProductCandidate> = emptyList(),
+  val conversationTurns: List<P1ConversationTurn> = emptyList(),
+  val canContinue: Boolean = true,
+  val microphonePermissionGranted: Boolean = false,
+  val importedAudioFiles: Set<String> = emptySet(),
 )
 
-class P0ViewModel(application: Application) : AndroidViewModel(application) {
-  private val app = application.applicationContext
-  private val modelDirectory = File(app.filesDir, "models/lfm25-audio-q4")
-  private val p1bDirectory = File(app.filesDir, "models/lfm25-p1b")
-  private val recorder = WavAudioRecorder(app)
-  private val runner = LiquidAudioRunner(app)
-  private val p1bRunner = LiquidTextRunner(app)
-  private val repository = SqliteWarehouseRepository(app)
+class StoreAssistantViewModel(application: Application) : AndroidViewModel(application) {
+  private val modelDirectory = File(application.filesDir, "models/lfm25-audio-q4")
+  private val p1bDirectory = File(application.filesDir, "models/lfm25-p1b")
+  private val recorder = WavAudioRecorder(application)
+  private val runner = LiquidAudioRunner(application)
+  private val p1bRunner = LiquidTextRunner(application)
+  private val repository = SqliteWarehouseRepository(application)
   private val p1Agent = GenerativeWarehouseAgent(repository = repository)
   private val mutableState = MutableStateFlow(initialState())
-  val state: StateFlow<P0UiState> = mutableState.asStateFlow()
-  private val mutableP1State = MutableStateFlow(initialP1State())
-  val p1State: StateFlow<P1UiState> = mutableP1State.asStateFlow()
+  val state: StateFlow<StoreAssistantUiState> = mutableState.asStateFlow()
   private var work: Job? = null
   private var p1Warmup: Job? = null
+  private var p1Conversation = P1ConversationSession()
 
   init {
     viewModelScope.launch {
       val catalog = withContext(Dispatchers.IO) { repository.catalog() }
-      mutableP1State.value = mutableP1State.value.copy(catalog = catalog)
+      mutableState.value = mutableState.value.copy(catalog = catalog)
     }
   }
 
-  fun onMicrophonePermissionResult(granted: Boolean, experience: Experience) {
+  fun onMicrophonePermissionResult(granted: Boolean) {
     mutableState.value = mutableState.value.copy(microphonePermissionGranted = granted)
-    if (granted) startRecording(experience)
-    else if (experience == Experience.P0) fail("Microphone permission was denied.")
-    else failP1("Microphone permission was denied.")
+    if (granted) startRecording() else fail("Microphone permission was denied.")
   }
 
   fun importModels(uris: List<Uri>) {
-    if (mutableState.value.phase == P0Phase.PROCESSING || mutableState.value.phase == P0Phase.RECORDING) return
+    if (mutableState.value.phase in setOf(P1Phase.PROCESSING, P1Phase.RECORDING)) return
     work =
       viewModelScope.launch {
-        mutableState.value = mutableState.value.copy(status = "Importing model files…", response = "")
+        p1Warmup?.cancel()
+        runner.shutdown()
+        p1bRunner.shutdown()
+        mutableState.value = mutableState.value.copy(modelsWarm = false)
+        mutableState.value = mutableState.value.copy(status = "Importing model files…")
         runCatching {
             withContext(Dispatchers.IO) {
               for (uri in uris) {
@@ -116,39 +112,37 @@ class P0ViewModel(application: Application) : AndroidViewModel(application) {
               }
             }
           }
-          .onSuccess { refreshModelState("Model import complete.") }
-          .onFailure { fail(it.message ?: "Model import failed") }
+          .onSuccess {
+            refreshModelState("Model import complete · preparing models…")
+            prepare()
+          }
+          .onFailure { failure -> if (failure !is CancellationException) fail(failure.message ?: "Model import failed") }
       }
   }
 
   fun toggleRecording() {
     when (mutableState.value.phase) {
-      P0Phase.READY, P0Phase.COMPLETE, P0Phase.ERROR -> startRecording(Experience.P0)
-      P0Phase.RECORDING -> stopAndInfer()
-      else -> Unit
-    }
-  }
-
-  fun toggleP1Recording() {
-    when (mutableP1State.value.phase) {
-      P1Phase.READY, P1Phase.COMPLETE, P1Phase.ERROR -> startRecording(Experience.P1)
+      P1Phase.READY, P1Phase.AWAITING_CONFIRMATION, P1Phase.COMPLETE, P1Phase.ERROR -> {
+        if (p1Conversation.canContinue) startRecording()
+      }
       P1Phase.RECORDING -> stopAndRoute()
       else -> Unit
     }
   }
 
-  fun submitP1Text(text: String) {
-    val current = mutableP1State.value
-    if (current.phase !in setOf(P1Phase.READY, P1Phase.COMPLETE, P1Phase.ERROR)) return
+  fun submitText(text: String) {
+    val current = mutableState.value
+    if (current.phase !in setOf(P1Phase.READY, P1Phase.AWAITING_CONFIRMATION, P1Phase.COMPLETE, P1Phase.ERROR)) return
+    if (!p1Conversation.canContinue) return
     if (!current.modelsWarm) {
-      prepareP1()
+      prepare()
       return
     }
     if (!P1BModel.from(p1bDirectory).isRunnable) {
-      failP1("Import the trained P1B Q8_0 model before running a task.")
+      fail("Import the trained P1B Q4_K model before running a task.")
       return
     }
-    mutableP1State.value =
+    mutableState.value =
       current.copy(
         phase = P1Phase.PROCESSING,
         status = "Running this task through trained P1B…",
@@ -164,40 +158,44 @@ class P0ViewModel(application: Application) : AndroidViewModel(application) {
     work =
       viewModelScope.launch {
         val started = System.nanoTime()
+        val conversationRequest = p1Conversation.request(text)
         runCatching {
             withContext(Dispatchers.IO) {
-              val inference = p1bRunner.infer(P1BModel.from(p1bDirectory), text)
-              inference to p1Agent.process(text, inference)
+              val inference = p1bRunner.infer(P1BModel.from(p1bDirectory), conversationRequest.modelInput)
+              inference to p1Agent.process(conversationRequest.auditTranscript, inference)
             }
           }
           .onSuccess { (inference, agentResult) ->
+            p1Conversation = p1Conversation.record(text, agentResult)
             val needsConfirmation =
               agentResult.prediction.risk == P1Risk.CONFIRM_REQUIRED && agentResult.proposal != null
-            mutableP1State.value =
-              mutableP1State.value.copy(
+            mutableState.value =
+              mutableState.value.copy(
                 phase = if (needsConfirmation) P1Phase.AWAITING_CONFIRMATION else P1Phase.COMPLETE,
-                status = if (needsConfirmation) "Review proposed action" else "Decision complete — direct P1B inference",
+                status = conversationStatus(needsConfirmation, agentResult),
                 transcript = text,
                 result = agentResult,
                 p1bPromptTokensPerSecond = inference.promptTokensPerSecond,
                 p1bDecodeTokensPerSecond = inference.decodeTokensPerSecond,
                 totalElapsedMillis = (System.nanoTime() - started) / 1_000_000,
                 modelsWarm = true,
+                conversationTurns = p1Conversation.turns,
+                canContinue = p1Conversation.canContinue,
               )
           }
-          .onFailure { failP1(it.message ?: "P1B inference failed") }
+          .onFailure { failure -> if (failure !is CancellationException) fail(failure.message ?: "P1B inference failed") }
       }
   }
 
-  fun prepareP1() {
-    if (mutableP1State.value.modelsWarm || p1Warmup?.isActive == true) return
+  fun prepare() {
+    if (mutableState.value.modelsWarm || p1Warmup?.isActive == true) return
     val audio = ModelBundle.from(modelDirectory)
     val p1b = P1BModel.from(p1bDirectory)
     if (!audio.isRunnable || !p1b.isRunnable) {
-      refreshP1ModelState()
+      refreshModelState()
       return
     }
-    mutableP1State.value = mutableP1State.value.copy(phase = P1Phase.PROCESSING, status = "Cold start · loading audio and trained P1B models…")
+    mutableState.value = mutableState.value.copy(phase = P1Phase.PROCESSING, status = "Cold start · loading audio and trained P1B models…")
     p1Warmup = viewModelScope.launch {
       val started = System.nanoTime()
       runCatching {
@@ -208,85 +206,78 @@ class P0ViewModel(application: Application) : AndroidViewModel(application) {
         }
         .onSuccess {
           val elapsed = (System.nanoTime() - started) / 1_000_000
-          mutableP1State.value =
-            mutableP1State.value.copy(
+          mutableState.value =
+            mutableState.value.copy(
               phase = P1Phase.READY,
               status = "Ready · both models warm and resident",
               modelsWarm = true,
               coldLoadMillis = elapsed,
             )
         }
-        .onFailure { failP1(it.message ?: "P1 model warm-up failed") }
+        .onFailure { failure -> if (failure !is CancellationException) fail(failure.message ?: "P1 model warm-up failed") }
     }
   }
 
   fun cancel() {
     recorder.cancel()
     runner.cancel()
-    work?.cancel()
-    refreshModelState("Cancelled.")
-  }
-
-  fun cancelP1() {
-    recorder.cancel()
-    runner.cancel()
     p1bRunner.cancel()
     work?.cancel()
-    mutableP1State.value = mutableP1State.value.copy(phase = P1Phase.READY, status = "Cancelled · models remain warm")
-  }
-
-  fun clearResult() {
-    if (mutableState.value.phase in setOf(P0Phase.RECORDING, P0Phase.PROCESSING)) return
-    refreshModelState()
+    p1Warmup?.cancel()
     mutableState.value =
       mutableState.value.copy(
-        response = "",
-        elapsedMillis = null,
-        ttfsMillis = null,
-        decodeTokensPerSecond = null,
+        phase = if (mutableState.value.modelsWarm) P1Phase.READY else P1Phase.ERROR,
+        status = if (mutableState.value.modelsWarm) "Cancelled · models remain warm" else "Model preparation cancelled",
       )
   }
 
-  fun clearP1Result() {
-    if (mutableP1State.value.phase in setOf(P1Phase.RECORDING, P1Phase.PROCESSING)) return
-    val current = mutableP1State.value
-    mutableP1State.value =
-      P1UiState(
-        phase = if (current.modelsWarm) P1Phase.READY else P1Phase.READY,
+  fun clearResult() {
+    if (mutableState.value.phase in setOf(P1Phase.RECORDING, P1Phase.PROCESSING)) return
+    val current = mutableState.value
+    p1Conversation = P1ConversationSession()
+    mutableState.value =
+      StoreAssistantUiState(
+        phase = P1Phase.READY,
         status = if (current.modelsWarm) "Ready · warm start" else "Ready for model preparation",
         modelsWarm = current.modelsWarm,
         coldLoadMillis = current.coldLoadMillis,
         catalog = current.catalog,
+        canContinue = true,
+        microphonePermissionGranted = current.microphonePermissionGranted,
+        importedAudioFiles = current.importedAudioFiles,
       )
   }
 
-  fun confirmP1Action() {
-    val current = mutableP1State.value
+  fun confirmAction() {
+    val current = mutableState.value
     if (current.phase != P1Phase.AWAITING_CONFIRMATION) return
     val result = current.result ?: return
-    mutableP1State.value = current.copy(phase = P1Phase.PROCESSING, status = "Saving and verifying the action locally…")
+    mutableState.value = current.copy(phase = P1Phase.PROCESSING, status = "Saving and verifying the action locally…")
     work =
       viewModelScope.launch {
         val started = System.nanoTime()
         runCatching { withContext(Dispatchers.IO) { p1Agent.confirm(result) } }
           .onSuccess { confirmed ->
+            p1Conversation = p1Conversation.close()
             val confirmationMillis = (System.nanoTime() - started) / 1_000_000
-            mutableP1State.value =
+            mutableState.value =
               current.copy(
                 phase = P1Phase.COMPLETE,
                 status = "Action complete and verified",
                 result = confirmed,
                 totalElapsedMillis = (current.totalElapsedMillis ?: 0) + confirmationMillis,
+                conversationTurns = p1Conversation.turns,
+                canContinue = false,
               )
           }
-          .onFailure { failP1(it.message ?: "Tool execution failed") }
+          .onFailure { failure -> if (failure !is CancellationException) fail(failure.message ?: "Tool execution failed") }
       }
   }
 
-  fun cancelP1Action() {
-    val current = mutableP1State.value
+  fun cancelAction() {
+    val current = mutableState.value
     if (current.phase != P1Phase.AWAITING_CONFIRMATION) return
-    mutableP1State.value =
+    mutableState.value =
       current.copy(
         phase = P1Phase.COMPLETE,
         status = "Proposed action cancelled",
@@ -299,6 +290,8 @@ class P0ViewModel(application: Application) : AndroidViewModel(application) {
                 if (it.state == ToolCallState.PROPOSED) it.copy(state = ToolCallState.CANCELLED) else it
               },
           ),
+        conversationTurns = p1Conversation.turns,
+        canContinue = p1Conversation.canContinue,
       )
   }
 
@@ -308,82 +301,41 @@ class P0ViewModel(application: Application) : AndroidViewModel(application) {
     p1bRunner.shutdown()
   }
 
-  private fun startRecording(experience: Experience) {
+  private fun startRecording() {
     if (!hasMicrophonePermission()) {
       mutableState.value = mutableState.value.copy(microphonePermissionGranted = false)
       return
     }
     if (!ModelBundle.from(modelDirectory).isRunnable) {
-      if (experience == Experience.P0) fail("Import all four matched Q4 model files before recording.")
-      else failP1("Import all four matched Q4 model files before recording.")
+      fail("Import all four matched Q4 model files before recording.")
       return
     }
-    if (experience == Experience.P1 && !P1BModel.from(p1bDirectory).isRunnable) {
-      failP1("Import the trained P1B Q8_0 model before recording.")
+    if (!P1BModel.from(p1bDirectory).isRunnable) {
+      fail("Import the trained P1B Q4_K model before recording.")
       return
     }
     runCatching { recorder.start() }
       .onSuccess {
-        if (experience == Experience.P0) {
-          mutableState.value =
-            mutableState.value.copy(
-              phase = P0Phase.RECORDING,
-              status = "Listening… Tap again to stop and send.",
-              response = "",
-              elapsedMillis = null,
-              ttfsMillis = null,
-              decodeTokensPerSecond = null,
-            )
-        } else {
-          mutableP1State.value =
-            mutableP1State.value.copy(
-              phase = P1Phase.RECORDING,
-              status = "Listening… Tap again to analyze.",
-              transcript = "",
-              result = null,
-              audioElapsedMillis = null,
-              audioTtfsMillis = null,
-              audioDecodeTokensPerSecond = null,
-              p1bPromptTokensPerSecond = null,
-              p1bDecodeTokensPerSecond = null,
-              totalElapsedMillis = null,
-            )
-        }
+        mutableState.value =
+          mutableState.value.copy(
+            phase = P1Phase.RECORDING,
+            status = "Listening… Tap again to analyze.",
+            transcript = "",
+            result = null,
+            audioElapsedMillis = null,
+            audioTtfsMillis = null,
+            audioDecodeTokensPerSecond = null,
+            p1bPromptTokensPerSecond = null,
+            p1bDecodeTokensPerSecond = null,
+            totalElapsedMillis = null,
+          )
       }
-      .onFailure {
-        if (experience == Experience.P0) fail(it.message ?: "Recording failed")
-        else failP1(it.message ?: "Recording failed")
-      }
-  }
-
-  private fun stopAndInfer() {
-    val audioFile = runCatching { recorder.stop() }.getOrElse { fail(it.message ?: "Recording failed"); return }
-    mutableState.value = mutableState.value.copy(phase = P0Phase.PROCESSING, status = "Processing entirely on this TC501…")
-    work =
-      viewModelScope.launch {
-        try {
-          runCatching { withContext(Dispatchers.IO) { runner.infer(ModelBundle.from(modelDirectory), audioFile) } }
-            .onSuccess { result ->
-              mutableState.value =
-                mutableState.value.copy(
-                  phase = P0Phase.COMPLETE,
-                  status = "Complete — local inference",
-                  response = result.text,
-                  elapsedMillis = result.elapsedMillis,
-                  ttfsMillis = result.ttfsMillis,
-                  decodeTokensPerSecond = result.decodeTokensPerSecond,
-                )
-            }
-            .onFailure { fail(it.message ?: "Inference failed") }
-        } finally {
-          audioFile.delete()
-        }
-      }
+      .onFailure { fail(it.message ?: "Recording failed") }
   }
 
   private fun stopAndRoute() {
-    val audioFile = runCatching { recorder.stop() }.getOrElse { failP1(it.message ?: "Audio capture failed"); return }
-    mutableP1State.value = mutableP1State.value.copy(phase = P1Phase.PROCESSING, status = "Transcribing and deciding locally…")
+    val audioFile = runCatching { recorder.stop() }.getOrElse { fail(it.message ?: "Audio capture failed"); return }
+    mutableState.value = mutableState.value.copy(phase = P1Phase.PROCESSING, status = "Transcribing and deciding locally…")
     work =
       viewModelScope.launch {
         val overallStarted = System.nanoTime()
@@ -391,18 +343,21 @@ class P0ViewModel(application: Application) : AndroidViewModel(application) {
           runCatching {
               withContext(Dispatchers.IO) {
                 val audioResult = runner.infer(ModelBundle.from(modelDirectory), audioFile, AudioInferenceMode.TRANSCRIPTION)
-                val p1bInference = p1bRunner.infer(P1BModel.from(p1bDirectory), audioResult.text)
-                val agentResult = p1Agent.process(audioResult.text, p1bInference)
-                Triple(audioResult, p1bInference, agentResult)
+                val conversationRequest = p1Conversation.request(audioResult.text)
+                val p1bInference = p1bRunner.infer(P1BModel.from(p1bDirectory), conversationRequest.modelInput)
+                val agentResult = p1Agent.process(conversationRequest.auditTranscript, p1bInference)
+                RoutedP1Result(audioResult, p1bInference, agentResult, audioResult.text)
               }
             }
-            .onSuccess { (audioResult, p1bInference, agentResult) ->
+            .onSuccess { routed ->
+              val (audioResult, p1bInference, agentResult, workerText) = routed
+              p1Conversation = p1Conversation.record(workerText, agentResult)
               val needsConfirmation =
                 agentResult.prediction.risk == P1Risk.CONFIRM_REQUIRED && agentResult.proposal != null
-              mutableP1State.value =
-                mutableP1State.value.copy(
+              mutableState.value =
+                mutableState.value.copy(
                   phase = if (needsConfirmation) P1Phase.AWAITING_CONFIRMATION else P1Phase.COMPLETE,
-                  status = if (needsConfirmation) "Review proposed action" else "Decision complete — local inference",
+                  status = conversationStatus(needsConfirmation, agentResult),
                   transcript = audioResult.text,
                   result = agentResult,
                   audioElapsedMillis = audioResult.elapsedMillis,
@@ -412,9 +367,11 @@ class P0ViewModel(application: Application) : AndroidViewModel(application) {
                   p1bDecodeTokensPerSecond = p1bInference.decodeTokensPerSecond,
                   totalElapsedMillis = (System.nanoTime() - overallStarted) / 1_000_000,
                   modelsWarm = true,
+                  conversationTurns = p1Conversation.turns,
+                  canContinue = p1Conversation.canContinue,
                 )
             }
-            .onFailure { failP1(it.message ?: "P1 inference failed") }
+            .onFailure { failure -> if (failure !is CancellationException) fail(failure.message ?: "P1 inference failed") }
         } finally {
           audioFile.delete()
         }
@@ -423,54 +380,36 @@ class P0ViewModel(application: Application) : AndroidViewModel(application) {
 
   private fun refreshModelState(message: String? = null) {
     val imported = modelDirectory.listFiles().orEmpty().filter(File::isFile).map(File::getName).toSet()
-    val runnable = ModelBundle.from(modelDirectory).isRunnable
-    mutableState.value =
-      mutableState.value.copy(
-        phase = if (runnable) P0Phase.READY else P0Phase.MODEL_MISSING,
-        status = message ?: if (runnable) "Ready for local audio inference." else "Import the matched LFM2.5-Audio Q4 model files.",
-        importedFiles = imported,
-        microphonePermissionGranted = hasMicrophonePermission(),
-      )
-    refreshP1ModelState(message)
-  }
-
-  private fun refreshP1ModelState(message: String? = null) {
     val ready = ModelBundle.from(modelDirectory).isRunnable && P1BModel.from(p1bDirectory).isRunnable
-    val current = mutableP1State.value
-    mutableP1State.value =
-      P1UiState(
+    val current = mutableState.value
+    mutableState.value =
+      StoreAssistantUiState(
         phase = if (ready) P1Phase.READY else P1Phase.MODEL_MISSING,
-        status = message ?: if (ready) "Models installed · open P1 to warm them." else "Import both LFM2.5-Audio Q4 and trained P1B Q8_0.",
-        modelsWarm = current.modelsWarm,
+        status = message ?: if (ready) "Models installed · preparing local runtimes." else "Import both LFM2.5-Audio Q4 and trained P1B Q4_K.",
+        modelsWarm = current.modelsWarm && ready,
         coldLoadMillis = current.coldLoadMillis,
         catalog = current.catalog,
+        microphonePermissionGranted = hasMicrophonePermission(),
+        importedAudioFiles = imported,
       )
   }
 
-  private fun initialState(): P0UiState {
+  private fun initialState(): StoreAssistantUiState {
     val imported = modelDirectory.listFiles().orEmpty().filter(File::isFile).map(File::getName).toSet()
     val ready = ModelBundle.from(modelDirectory).isRunnable && P1BModel.from(p1bDirectory).isRunnable
-    return P0UiState(
-      phase = if (ready) P0Phase.READY else P0Phase.MODEL_MISSING,
-      status = if (ready) "Ready for local audio inference." else "Import the matched LFM2.5-Audio Q4 model files.",
-      microphonePermissionGranted = hasMicrophonePermission(),
-      importedFiles = imported,
-    )
-  }
-
-  private fun initialP1State(): P1UiState {
-    val ready = ModelBundle.from(modelDirectory).isRunnable
-    return P1UiState(
+    return StoreAssistantUiState(
       phase = if (ready) P1Phase.READY else P1Phase.MODEL_MISSING,
-      status = if (ready) "Models installed · open P1 to warm them." else "Import both LFM2.5-Audio Q4 and trained P1B Q8_0.",
+      status = if (ready) "Models installed · preparing local runtimes." else "Import both LFM2.5-Audio Q4 and trained P1B Q4_K.",
+      microphonePermissionGranted = hasMicrophonePermission(),
+      importedAudioFiles = imported,
     )
   }
 
   private fun hasMicrophonePermission() =
-    ContextCompat.checkSelfPermission(app, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
+    ContextCompat.checkSelfPermission(getApplication(), Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
 
   private fun displayName(uri: Uri): String? =
-    app.contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use { cursor ->
+    getApplication<Application>().contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use { cursor ->
       if (cursor.moveToFirst()) cursor.getString(0) else null
     }
 
@@ -481,7 +420,7 @@ class P0ViewModel(application: Application) : AndroidViewModel(application) {
     val digest = MessageDigest.getInstance("SHA-256")
     var bytes = 0L
     try {
-      app.contentResolver.openInputStream(uri).use { input ->
+      getApplication<Application>().contentResolver.openInputStream(uri).use { input ->
         checkNotNull(input) { "Unable to open ${spec.name}" }
         partial.outputStream().buffered().use { output ->
           val buffer = ByteArray(1024 * 1024)
@@ -497,17 +436,37 @@ class P0ViewModel(application: Application) : AndroidViewModel(application) {
       check(bytes == spec.bytes) { "${spec.name} has the wrong size" }
       val actual = digest.digest().joinToString("") { "%02x".format(it) }
       check(actual == spec.sha256) { "${spec.name} failed SHA-256 verification" }
-      check(partial.renameTo(destination)) { "Unable to activate ${spec.name}" }
+      try {
+        Files.move(
+          partial.toPath(),
+          destination.toPath(),
+          StandardCopyOption.ATOMIC_MOVE,
+          StandardCopyOption.REPLACE_EXISTING,
+        )
+      } catch (_: AtomicMoveNotSupportedException) {
+        Files.move(partial.toPath(), destination.toPath(), StandardCopyOption.REPLACE_EXISTING)
+      }
     } finally {
       partial.delete()
     }
   }
 
   private fun fail(message: String) {
-    mutableState.value = mutableState.value.copy(phase = P0Phase.ERROR, status = message)
+    mutableState.value = mutableState.value.copy(phase = P1Phase.ERROR, status = message)
   }
 
-  private fun failP1(message: String) {
-    mutableP1State.value = mutableP1State.value.copy(phase = P1Phase.ERROR, status = message)
-  }
+  private fun conversationStatus(needsConfirmation: Boolean, result: P1AgentResult): String =
+    when {
+      needsConfirmation -> "Review proposed action"
+      result.prediction.missingFields.isNotEmpty() -> "More detail needed · turn ${p1Conversation.turns.size}/${P1ConversationSession.MAX_TURNS}"
+      p1Conversation.canContinue -> "Complete · continue or start a new request"
+      else -> "Complete · three-turn session limit reached"
+    }
+
+  private data class RoutedP1Result(
+    val audio: InferenceResult,
+    val inference: com.example.zebralocalai.inference.P1BInference,
+    val agentResult: P1AgentResult,
+    val workerText: String,
+  )
 }

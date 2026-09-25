@@ -1,6 +1,6 @@
 # Current State and Roadmap
 
-Last updated: 2026-09-22.
+Last updated: 2026-09-23.
 
 This document is the authoritative summary of implemented behavior and planned phases. Older
 exploration in `WAREHOUSE_DEMO.md` is retained for future demo ideas but does not override this
@@ -40,9 +40,9 @@ The model never generates executable SQL, code or arbitrary Android actions. Kot
 validates its output, resolves catalog candidates, derives and enforces write policy, constructs
 typed requests and owns confirmation, execution and verification.
 
-## Implemented phases
+## Implemented foundation
 
-### P0: audio plumbing — complete
+### Audio plumbing
 
 - Compose Android application installed and exercised on the physical TC501.
 - Push-to-talk 16 kHz mono capture.
@@ -52,10 +52,9 @@ typed requests and owns confirmation, execution and verification.
 - Clear and cancellation behavior.
 - Temporary audio cleanup and no output-audio generation.
 
-### P1A: deterministic store-agent foundation — complete
+### Deterministic store-agent foundation
 
-- P0 and P1 application tabs.
-- Store Assistant UI with voice recipes and passive capability tiles.
+- Single-purpose Store Assistant UI with voice and executable recipe tiles.
 - LFM audio ASR using `Perform ASR.`.
 - Five-SKU JSON seed catalog imported into app-private SQLite.
 - Exact SKU and deterministic lexical catalog matching; no RAG, embeddings or ColBERT.
@@ -64,13 +63,11 @@ typed requests and owns confirmation, execution and verification.
 - Persistent issues with `ISS-######`, description, category, status, priority, source transcript,
   timestamps and a complete JSON audit/export payload.
 - Read-back verification from SQLite before reporting write success.
-- Contract-simulator router behind a replaceable encoder interface.
 - Worker-facing result cards; internal sense/understand/decide stages are not shown as message
   schema.
 - Unit tests plus physical-device ASR and SQLite round-trip instrumentation tests.
 
-P1A remains in the source tree as a tested rollback/reference implementation. It is no longer in
-the live P1 request path, which is now:
+The earlier deterministic router has been removed. The live request path is:
 
 ```text
 ASR transcript
@@ -99,7 +96,9 @@ Completed pilot work:
   all five adapters, parallel reads, correction handling, conditional read-first routing and
   safety behavior.
 - Improved held-out qualitative evaluation from 7.28 to 8.90.
-- Merged and exported Q4_K and Q8_0 GGUFs; the demo app now pins Q8_0 for the stronger quality margin.
+- Exported and device-tested v4 Q4_K and Q8_0 GGUFs. The demo app pins Q4_K after it matched Q8_0
+  on the schema-free ablation while reducing warm median latency from 3,253 ms to 2,772 ms; Q8_0
+  remains the rollback reference.
 - Bundled a portable ARM64 llama.cpp server and integrated Liquid native-call parsing.
 - Removed the deterministic simulator from the live P1 route.
 - The Android runner uses llama.cpp `/apply-template` plus raw `/completion`, preserving Liquid's
@@ -108,6 +107,14 @@ Completed pilot work:
 - Passed a physical TC501 end-to-end test for all five tools, including model inference, strict
   native parsing, policy, SQLite reads, confirmation-gated writes and read-back verification.
 - Passed a physical TC501 two-call independent inventory-read test.
+- Added a bounded three-turn conversational session for worker-driven clarification repair,
+  request expansion and correction. Android retains compact context, flattens worker turns into
+  the checkpoint's trained request style, and supplies verified local facts when needed.
+- Passed physical TC501 continuation tests for completing missing replenishment fields, correcting
+  a pending quantity and expanding an inventory read.
+- Raised the bounded P1B generation allowance to 256 tokens after a real three-read call block
+  required 159 tokens and was safely rejected at the previous 128-token limit. The runner also
+  treats llama.cpp `stop_type=limit` explicitly as truncation.
 - Strict parsing rejects duplicate keys, unknown non-null arguments, malformed calls and length
   truncation; none can reach an adapter.
 - Measured the validation run at 446 ms server/model startup, 7.27 s first inference and 5.59 s
@@ -116,8 +123,9 @@ Completed pilot work:
 - With the app open and both servers resident, the observed process RSS values were approximately
   200 MiB for the app, 1.69 GiB for audio and 329 MiB for P1B (about 2.21 GiB combined).
 
-Remaining work is to measure release-build memory/thermal/battery behavior and implement the
-bounded dependent model → tool result → model orchestration in the live app.
+Remaining work is to measure release-build memory/thermal/battery behavior and implement automatic
+bounded dependent model → tool result → model orchestration. Worker-driven continuation is already
+integrated; automatic chaining without another worker turn remains deferred.
 
 #### Observed TC501 regression: vague replenishment
 
@@ -157,7 +165,7 @@ Completed in the demo build:
 
 Remaining:
 
-5. **Dependent orchestration:** only after independent reads remain reliable, add the bounded
+5. **Automatic dependent orchestration:** only after independent reads remain reliable, add the bounded
    model → tool results → model loop for dependent reads and conditional actions.
 
 Current adapter boundary:
