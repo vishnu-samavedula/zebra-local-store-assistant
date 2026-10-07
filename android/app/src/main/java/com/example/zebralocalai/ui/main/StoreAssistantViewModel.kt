@@ -56,6 +56,11 @@ data class StoreAssistantUiState(
   val audioDecodeTokensPerSecond: Double? = null,
   val p1bPromptTokensPerSecond: Double? = null,
   val p1bDecodeTokensPerSecond: Double? = null,
+  val p1bPromptTokens: Int? = null,
+  val p1bPredictedTokens: Int? = null,
+  val p1bCachedTokens: Int? = null,
+  val p1bPromptMillis: Long? = null,
+  val p1bPredictedMillis: Long? = null,
   val totalElapsedMillis: Long? = null,
   val modelsWarm: Boolean = false,
   val coldLoadMillis: Long? = null,
@@ -131,6 +136,8 @@ class StoreAssistantViewModel(application: Application) : AndroidViewModel(appli
   }
 
   fun submitText(text: String) {
+    val workerText = text.trim()
+    if (workerText.isBlank()) return
     val current = mutableState.value
     if (current.phase !in setOf(P1Phase.READY, P1Phase.AWAITING_CONFIRMATION, P1Phase.COMPLETE, P1Phase.ERROR)) return
     if (!p1Conversation.canContinue) return
@@ -146,7 +153,7 @@ class StoreAssistantViewModel(application: Application) : AndroidViewModel(appli
       current.copy(
         phase = P1Phase.PROCESSING,
         status = "Running this task through trained P1B…",
-        transcript = text,
+        transcript = workerText,
         result = null,
         audioElapsedMillis = null,
         audioTtfsMillis = null,
@@ -158,7 +165,7 @@ class StoreAssistantViewModel(application: Application) : AndroidViewModel(appli
     work =
       viewModelScope.launch {
         val started = System.nanoTime()
-        val conversationRequest = p1Conversation.request(text)
+        val conversationRequest = p1Conversation.request(workerText)
         runCatching {
             withContext(Dispatchers.IO) {
               val inference = p1bRunner.infer(P1BModel.from(p1bDirectory), conversationRequest.modelInput)
@@ -166,17 +173,22 @@ class StoreAssistantViewModel(application: Application) : AndroidViewModel(appli
             }
           }
           .onSuccess { (inference, agentResult) ->
-            p1Conversation = p1Conversation.record(text, agentResult)
+            p1Conversation = p1Conversation.record(workerText, agentResult)
             val needsConfirmation =
               agentResult.prediction.risk == P1Risk.CONFIRM_REQUIRED && agentResult.proposal != null
             mutableState.value =
               mutableState.value.copy(
                 phase = if (needsConfirmation) P1Phase.AWAITING_CONFIRMATION else P1Phase.COMPLETE,
                 status = conversationStatus(needsConfirmation, agentResult),
-                transcript = text,
+                transcript = workerText,
                 result = agentResult,
                 p1bPromptTokensPerSecond = inference.promptTokensPerSecond,
                 p1bDecodeTokensPerSecond = inference.decodeTokensPerSecond,
+                p1bPromptTokens = inference.promptTokens,
+                p1bPredictedTokens = inference.predictedTokens,
+                p1bCachedTokens = inference.cachedTokens,
+                p1bPromptMillis = inference.promptMillis,
+                p1bPredictedMillis = inference.predictedMillis,
                 totalElapsedMillis = (System.nanoTime() - started) / 1_000_000,
                 modelsWarm = true,
                 conversationTurns = p1Conversation.turns,
@@ -365,6 +377,11 @@ class StoreAssistantViewModel(application: Application) : AndroidViewModel(appli
                   audioDecodeTokensPerSecond = audioResult.decodeTokensPerSecond,
                   p1bPromptTokensPerSecond = p1bInference.promptTokensPerSecond,
                   p1bDecodeTokensPerSecond = p1bInference.decodeTokensPerSecond,
+                  p1bPromptTokens = p1bInference.promptTokens,
+                  p1bPredictedTokens = p1bInference.predictedTokens,
+                  p1bCachedTokens = p1bInference.cachedTokens,
+                  p1bPromptMillis = p1bInference.promptMillis,
+                  p1bPredictedMillis = p1bInference.predictedMillis,
                   totalElapsedMillis = (System.nanoTime() - overallStarted) / 1_000_000,
                   modelsWarm = true,
                   conversationTurns = p1Conversation.turns,

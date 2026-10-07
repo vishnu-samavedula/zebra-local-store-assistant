@@ -1,0 +1,95 @@
+[
+  {
+    "type": "function",
+    "function": {
+      "name": "inventory_search",
+      "description": "Search local inventory by product, SKU, attributes, location, or minimum available quantity.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "semantic_query": { "type": "string" },
+          "sku": { "type": "string" },
+          "color": { "type": "string" },
+          "size": { "type": "string" },
+          "location": { "type": "string" },
+          "minimum_quantity": { "type": "integer", "minimum": 1 }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "location_contents",
+      "description": "List or filter inventory stored at a warehouse location.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "location": { "type": "string" },
+          "semantic_query": { "type": "string" }
+        },
+        "required": ["location"],
+        "additionalProperties": false
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "get_task_status",
+      "description": "Retrieve a warehouse task or filter the current worker's tasks.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "task_id": { "type": "string" },
+          "task_type": { "type": "string", "enum": ["pick", "putaway", "receive", "replenish"] },
+          "status": { "type": "string", "enum": ["assigned", "in_progress", "blocked", "complete"] }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "report_issue",
+      "description": "Propose an issue only when explicitly requested. Damage or discrepancy requires one product or SKU, quantity, and location. General or blocked-location issues require a location.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "description": { "type": "string" },
+          "category": { "type": "string", "enum": ["damage", "discrepancy", "blocked_location", "general"] },
+          "semantic_query": { "type": "string" },
+          "sku": { "type": "string" },
+          "quantity": { "type": "integer", "minimum": 1 },
+          "location": { "type": "string" },
+          "task_id": { "type": "string" }
+        },
+        "required": ["description", "category"],
+        "additionalProperties": false
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "request_replenishment",
+      "description": "Propose replenishment only with one product or SKU, quantity, quantity_mode, and destination. quantity_mode is add or target_level.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "semantic_query": { "type": "string" },
+          "sku": { "type": "string" },
+          "quantity": { "type": "integer", "minimum": 1 },
+          "quantity_mode": { "type": "string", "enum": ["add", "target_level"] },
+          "destination_location": { "type": "string" },
+          "reason": { "type": "string" },
+          "task_id": { "type": "string" }
+        },
+        "required": ["quantity", "quantity_mode", "destination_location"],
+        "additionalProperties": false
+      }
+    }
+  }
+]

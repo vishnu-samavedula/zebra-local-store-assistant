@@ -109,6 +109,19 @@ def main() -> None:
             totals["no_tool_reference_rows"] += 1
             if actual:
                 totals["unexpected_native_call"] += 1
+                user = next(
+                    (message.get("content") for message in messages if message.get("role") == "user"),
+                    None,
+                )
+                mismatches.append(
+                    {
+                        "sample_index": row["sample_index"],
+                        "user": user,
+                        "expected": None,
+                        "actual": actual,
+                        "parse_error": parse_error,
+                    }
+                )
             continue
         totals["tool_reference_rows"] += 1
         if actual is not None:

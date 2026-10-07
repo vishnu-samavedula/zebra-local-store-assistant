@@ -107,10 +107,11 @@ Never check model weights into Git or bundle them into the APK.
 
 ## P1B model and cold/warm lifecycle
 
-The deployed demo model is `models/LFM2.5-350M-P1B-SchemaFree-v4-Q4_K.gguf` (229,314,496 bytes,
-SHA-256 `4e422546677f4a7c4280625a787f66348d37029e047bee5708dc6930a2f45b84`). Its
-app-private target is `files/models/lfm25-p1b/`. Android uses the frozen schema-free contract and
-sends no tool definitions during inference. Opening the app starts one explicit cold preparation of the
+The deployed demo model is `models/LFM2.5-350M-Warehouse-Stable-Q4_K.gguf` (229,314,496 bytes,
+SHA-256 `79863ccf4cd66b5d7532d4ac3f2cb9e8de65164ebd2b8251574fadf363ed1a15`). Its
+app-private target is `files/models/lfm25-p1b/`. Android renders the canonical short system prompt
+and five tool schemas through llama.cpp `/apply-template`, then submits the rendered prompt to raw
+`/completion`. Opening the app starts one explicit cold preparation of the
 audio and P1B servers. After it reports **both models warm and resident**, recording a request does
 not reload either model. Clearing a result also preserves the warm processes. App process death,
 an OS kill, or a server failure requires another cold preparation.

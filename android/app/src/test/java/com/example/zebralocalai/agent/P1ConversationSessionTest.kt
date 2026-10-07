@@ -21,7 +21,12 @@ class P1ConversationSessionTest {
       result(
         message = "I need a positive quantity, destination location before I can prepare the replenishment.",
         tool = P1Tool.REQUEST_REPLENISHMENT,
-        arguments = mapOf("semantic_query" to "Northline safety vest", "quantity_mode" to "add"),
+        arguments =
+          mapOf(
+            "semantic_query" to "Northline safety vest",
+            "quantity_mode" to "add",
+            "units_to_move" to "12",
+          ),
         missing = listOf("a positive quantity", "destination location"),
       )
     val session = P1ConversationSession().record("We need more Northline safety vests", first)
@@ -30,6 +35,9 @@ class P1ConversationSessionTest {
 
     assertTrue(followUp.modelInput.contains("We need more Northline safety vests."))
     assertTrue(followUp.modelInput.contains("Make it 12 to B2-04"))
+    assertTrue(followUp.modelInput.contains("request_replenishment"))
+    assertTrue(followUp.modelInput.contains("quantity_mode=add"))
+    assertFalse(followUp.modelInput.contains("units_to_move"))
     assertEquals("We need more Northline safety vests -> Make it 12 to B2-04", followUp.auditTranscript)
   }
 

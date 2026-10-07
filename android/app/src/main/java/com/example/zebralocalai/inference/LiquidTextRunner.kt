@@ -1,6 +1,7 @@
 package com.example.zebralocalai.inference
 
 import android.content.Context
+import com.example.zebralocalai.BuildConfig
 import com.example.zebralocalai.agent.LiquidNativeToolParser
 import com.example.zebralocalai.agent.ParsedNativeToolCall
 import java.io.File
@@ -24,6 +25,8 @@ data class P1BInference(
   val promptTokens: Int? = null,
   val predictedTokens: Int? = null,
   val cachedTokens: Int? = null,
+  val promptMillis: Long? = null,
+  val predictedMillis: Long? = null,
 )
 
 enum class ToolPromptMode { FULL_SCHEMA, COMPACT_SIGNATURES, SCHEMA_FREE }
@@ -41,6 +44,12 @@ class LiquidTextRunner(private val context: Context) {
   @Volatile private var serverPort: Int? = null
   @Volatile private var activeRequest: HttpURLConnection? = null
   private val serverLog = StringBuilder()
+  private val nativeSystemPrompt by lazy {
+    context.assets.open("warehouse_tool_agent_native_v1.md").bufferedReader().use { it.readText().trim() }
+  }
+  private val nativeToolDefinitions by lazy {
+    JSONArray(context.assets.open("warehouse_tools_v1.json").bufferedReader().use { it.readText() })
+  }
 
   fun warmup(model: P1BModel) {
     check(model.isRunnable) { "Import the trained P1B model before warming the store agent" }
@@ -50,21 +59,21 @@ class LiquidTextRunner(private val context: Context) {
   fun infer(
     model: P1BModel,
     transcript: String,
-    promptMode: ToolPromptMode = ToolPromptMode.SCHEMA_FREE,
+    promptMode: ToolPromptMode = ToolPromptMode.FULL_SCHEMA,
   ): P1BInference {
     check(model.isRunnable) { "Import the trained P1B model before using the store agent" }
     val started = System.nanoTime()
     val port = ensureServer(model)
     val messages =
       JSONArray()
-        .put(JSONObject().put("role", "system").put("content", promptMode.systemPrompt))
+        .put(JSONObject().put("role", "system").put("content", systemPrompt(promptMode)))
         .put(JSONObject().put("role", "user").put("content", transcript))
     val templateRequest =
       JSONObject()
         .put("messages", messages)
         .put("add_generation_prompt", true)
         .also {
-          if (promptMode == ToolPromptMode.FULL_SCHEMA) it.put("tools", toolDefinitions())
+          if (promptMode == ToolPromptMode.FULL_SCHEMA) it.put("tools", nativeToolDefinitions)
         }
     // llama.cpp's completion tokenizer adds the GGUF-configured BOS token itself.
     val rendered = postJson(port, "/apply-template", templateRequest).getString("prompt")
@@ -81,12 +90,7 @@ class LiquidTextRunner(private val context: Context) {
         .put("cache_prompt", true)
     val response = postJson(port, "/completion", request)
     val content = response.optString("content").takeUnless { it == "null" }.orEmpty().trim()
-    val nativeOutput =
-      if (content.startsWith('[') && content.endsWith(']')) {
-        "<|tool_call_start|>$content<|tool_call_end|>"
-      } else {
-        content
-      }
+    val nativeOutput = normalizeLiquidNativeOutput(content)
     val calls = LiquidNativeToolParser.parse(nativeOutput)
     val stopType = response.optString("stop_type", "stop")
     val stoppedAtLimit = response.optBoolean("stopped_limit", false) || stopType == "limit"
@@ -105,6 +109,8 @@ class LiquidTextRunner(private val context: Context) {
       promptTokens = timings?.optIntOrNull("prompt_n"),
       predictedTokens = timings?.optIntOrNull("predicted_n"),
       cachedTokens = response.optIntOrNull("tokens_cached"),
+      promptMillis = timings?.optDoubleOrNull("prompt_ms")?.toLong(),
+      predictedMillis = timings?.optDoubleOrNull("predicted_ms")?.toLong(),
     )
   }
 
@@ -133,13 +139,26 @@ class LiquidTextRunner(private val context: Context) {
     }
   }
 
+  private fun systemPrompt(mode: ToolPromptMode): String =
+    when (mode) {
+      ToolPromptMode.FULL_SCHEMA -> nativeSystemPrompt
+      ToolPromptMode.COMPACT_SIGNATURES -> COMPACT_SIGNATURE_PROMPT
+      ToolPromptMode.SCHEMA_FREE -> SCHEMA_FREE_PROMPT
+    }
+
   @Synchronized
   private fun ensureServer(model: P1BModel): Int {
     val existing = serverProcess
     val existingPort = serverPort
     if (existing != null && existing.isAlive && existingPort != null) return existingPort
     val nativeDirectory = File(context.applicationInfo.nativeLibraryDir)
-    val executable = File(nativeDirectory, "libllama-text-server.so")
+    val executableName =
+      if (BuildConfig.USE_NEXT_TEXT_RUNTIME) {
+        "libllama-text-server-next.so"
+      } else {
+        "libllama-text-server.so"
+      }
+    val executable = File(nativeDirectory, executableName)
     check(executable.canExecute()) { "The P1B text server is not installed in the APK" }
     val port = ServerSocket(0, 1, InetAddress.getByName("127.0.0.1")).use { it.localPort }
     val process =
@@ -217,13 +236,6 @@ class LiquidTextRunner(private val context: Context) {
   private fun JSONObject.optIntOrNull(name: String): Int? = if (has(name) && !isNull(name)) optInt(name) else null
 }
 
-private const val SYSTEM_PROMPT = """You are an offline warehouse tool agent on a Zebra handheld.
-Use only the supplied tools. Emit at most three independent reads in one turn.
-Dependent calls must wait for tool results. A write must be the only call in its
-turn and is only a proposal that the app will confirm. Never emit SQL or hidden
-reasoning. Ask a short clarification when required information is missing.
-After read results, answer in at most two short sentences using only returned facts."""
-
 private const val COMPACT_SIGNATURE_PROMPT = """You are an offline warehouse tool agent on a Zebra handheld.
 Use these learned tools and emit Liquid-native Pythonic calls:
 inventory_search(semantic_query, sku, color, size, location, minimum_quantity);
@@ -247,33 +259,37 @@ only returned facts.
 For replenishment, `target_level` means the requested quantity is the desired total stock level;
 `add` means add the stated number of units."""
 
-private val ToolPromptMode.systemPrompt: String
-  get() =
-    when (this) {
-      ToolPromptMode.FULL_SCHEMA -> SYSTEM_PROMPT
-      ToolPromptMode.COMPACT_SIGNATURES -> COMPACT_SIGNATURE_PROMPT
-      ToolPromptMode.SCHEMA_FREE -> SCHEMA_FREE_PROMPT
+/**
+ * llama.cpp omits Liquid's special tokens from `content`. The native model may legally emit
+ * short prose after the fenced call, so recover only the leading balanced Pythonic call list.
+ */
+internal fun normalizeLiquidNativeOutput(content: String): String {
+  val value = content.trim()
+  if (!value.startsWith('[')) return value
+  var depth = 0
+  var quote: Char? = null
+  var escaped = false
+  value.forEachIndexed { index, char ->
+    if (escaped) {
+      escaped = false
+    } else if (char == '\\' && quote != null) {
+      escaped = true
+    } else if (quote == null && (char == '\'' || char == '"')) {
+      quote = char
+    } else if (quote == char) {
+      quote = null
+    } else if (quote == null) {
+      when (char) {
+        '[' -> depth++
+        ']' -> {
+          depth--
+          if (depth == 0) {
+            val callList = value.substring(0, index + 1)
+            return "<|tool_call_start|>$callList<|tool_call_end|>"
+          }
+        }
+      }
     }
-
-private fun toolDefinitions(): JSONArray =
-  JSONArray()
-    .put(tool("inventory_search", "Search local inventory by product description, SKU, attributes, location, or required quantity.", JSONObject().put("semantic_query", string()).put("sku", string()).put("color", string()).put("size", string()).put("location", string()).put("minimum_quantity", integer())))
-    .put(tool("location_contents", "List or filter inventory stored at a warehouse bin, aisle, dock, staging area, or zone.", JSONObject().put("location", string()).put("semantic_query", string()), JSONArray().put("location")))
-    .put(tool("get_task_status", "Retrieve one warehouse task or filter the current worker's assigned tasks.", JSONObject().put("task_id", string()).put("task_type", enumString("pick", "putaway", "receive", "replenish")).put("status", enumString("assigned", "in_progress", "blocked", "complete"))))
-    .put(tool("report_issue", "Propose a warehouse issue report. The app previews and confirms every write.", JSONObject().put("description", string()).put("category", enumString("damage", "discrepancy", "blocked_location", "general")).put("semantic_query", string()).put("sku", string()).put("quantity", integer()).put("location", string()).put("task_id", string()), JSONArray().put("description").put("category")))
-    .put(tool("request_replenishment", "Propose replenishment to a destination. The app previews and confirms every write.", JSONObject().put("semantic_query", string()).put("sku", string()).put("quantity", integer()).put("quantity_mode", enumString("add", "target_level")).put("destination_location", string()).put("reason", string()).put("task_id", string()), JSONArray().put("quantity").put("quantity_mode").put("destination_location")))
-
-private fun tool(name: String, description: String, properties: JSONObject, required: JSONArray? = null) =
-  JSONObject()
-    .put("type", "function")
-    .put(
-      "function",
-      JSONObject()
-        .put("name", name)
-        .put("description", description)
-        .put("parameters", JSONObject().put("type", "object").put("properties", properties).put("additionalProperties", false).also { if (required != null) it.put("required", required) }),
-    )
-
-private fun string() = JSONObject().put("type", "string")
-private fun enumString(vararg values: String) = string().put("enum", JSONArray(values.toList()))
-private fun integer() = JSONObject().put("type", "integer").put("minimum", 1)
+  }
+  return value
+}

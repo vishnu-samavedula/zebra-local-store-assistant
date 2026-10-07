@@ -79,9 +79,11 @@ and ambiguity justify the extra model and runtime cost.
 
 ## P1D
 
-Adapt LFM Audio only if real TC501 evaluation shows material SKU, quantity, location or noisy-zone
-ASR errors. Prefer deterministic correction first, then adapters/LoRA. Direct audio intent heads
-are a later experiment and do not remove the audit transcript.
+Build a direct speech-to-native-tool-call candidate while retaining the current ASR-to-350M route
+as the stable benchmark and fallback. Reuse the same deterministic tool labels, contract, parser,
+policy, and probes; add paired spoken rows and text twins rather than treating transcription as a
+mandatory handoff. Promotion requires exact behavioral and physical-device evidence. See
+[AUDIO_TOOL_CALLING_PLAN.md](AUDIO_TOOL_CALLING_PLAN.md).
 
 ## Later phases
 

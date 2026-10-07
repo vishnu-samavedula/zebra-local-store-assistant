@@ -1,0 +1,35 @@
+{
+  "tool": "start_training",
+  "args": {
+    "type": "sft",
+    "base_model": "LiquidAI/LFM2.5-350M",
+    "base_model_revision": "9e6c6ccf47cd318696e137d381a7ded8fe4df09f",
+    "dataset": [
+      "datasets/warehouse_tool_agent_native_v1_train_v3",
+      "datasets/warehouse_tool_agent_native_semantic_multiread_train_v1"
+    ],
+    "eval_dataset": [
+      "datasets/warehouse_tool_agent_native_v1_eval_v3",
+      "datasets/warehouse_tool_agent_native_semantic_multiread_eval_v1"
+    ],
+    "scorer": "evals/scorers/warehouse_tool_agent_v1.md",
+    "run_name": "sft_lfm25_350m_warehouse_compact_preserve_v2",
+    "lora": true,
+    "lora_rank": 8,
+    "lora_alpha": 16,
+    "lora_dropout": 0.05,
+    "lora_target_modules": [
+      "q_proj",
+      "k_proj",
+      "v_proj",
+      "o_proj"
+    ],
+    "learning_rate": 0.00003,
+    "num_epochs": 3,
+    "seed": 42,
+    "enable_sweep": false,
+    "datamix_version_id": "e1ee0b0a-74ba-476c-bac4-17a6cf1d10d4",
+    "hygiene_report_id": "99a5b54f-1e6e-496f-b1bf-66c3aff5805a"
+  },
+  "allow_hf_donate": true
+}

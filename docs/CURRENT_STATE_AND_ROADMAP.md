@@ -1,6 +1,6 @@
 # Current State and Roadmap
 
-Last updated: 2026-09-23.
+Last updated: 2026-10-07.
 
 This document is the authoritative summary of implemented behavior and planned phases. Older
 exploration in `WAREHOUSE_DEMO.md` is retained for future demo ideas but does not override this
@@ -84,11 +84,11 @@ ASR transcript
 Use sibling repositories `../lqh` and `../lqh_backend` as the authoritative training-tool
 references.
 
-Completed pilot work:
+Completed pilot and promotion work:
 
 - Generated/reviewed the synthetic pilot and trained the LFM2.5-350M LoRA through LQH 0.23.
-- Trained and promoted the balanced schema-free v4 checkpoint. It internalizes the five fixed tool
-  contracts and runs without request-level JSON schemas or compact signatures.
+- Used the balanced schema-free v4 checkpoint as an intermediate experiment. Device ablation showed
+  that removing tool schemas was not reliable enough for the final checkpoint.
 - Schema-free v4 scored 9.20 on the original 100-row held-out set and 7.85 on the separate 20-row
   first-turn judge suite. Android-normalized exact checks passed 17/17 actionable first turns,
   3/3 no-call cases, and 40/40 execution-critical held-out tool targets.
@@ -96,9 +96,9 @@ Completed pilot work:
   all five adapters, parallel reads, correction handling, conditional read-first routing and
   safety behavior.
 - Improved held-out qualitative evaluation from 7.28 to 8.90.
-- Exported and device-tested v4 Q4_K and Q8_0 GGUFs. The demo app pins Q4_K after it matched Q8_0
-  on the schema-free ablation while reducing warm median latency from 3,253 ms to 2,772 ms; Q8_0
-  remains the rollback reference.
+- Promoted `LFM2.5-350M-Warehouse-Stable-Q4_K.gguf`, trained from the clean base with 500 repaired
+  native-tool rows and 40 focused semantic multi-read rows. Historical schema-free and intermediate
+  P1B GGUFs are no longer deployment or rollback artifacts.
 - Bundled a portable ARM64 llama.cpp server and integrated Liquid native-call parsing.
 - Removed the deterministic simulator from the live P1 route.
 - The Android runner uses llama.cpp `/apply-template` plus raw `/completion`, preserving Liquid's
@@ -126,6 +126,9 @@ Completed pilot work:
 Remaining work is to measure release-build memory/thermal/battery behavior and implement automatic
 bounded dependent model → tool result → model orchestration. Worker-driven continuation is already
 integrated; automatic chaining without another worker turn remains deferred.
+
+See [FRICTION_LOG.md](FRICTION_LOG.md) for the chronological failures, corrections, and decisions
+that led to the current architecture.
 
 #### Observed TC501 regression: vague replenishment
 
@@ -212,15 +215,21 @@ fails. LQH Cloud jobs incur cost and require explicit spend authorization before
 - Evaluate LFM2.5-Encoder/Embedding/ColBERT only if measured catalog scale or ambiguity justifies
   an additional retrieval runtime.
 
-### P1D: warehouse audio adaptation
+### P1D: direct warehouse audio tool calling
 
-Only begin if TC501 audio evaluation shows that ASR is the bottleneck.
+Preserve the current ASR -> 350M route as the stable control while building a separate direct
+speech -> native-tool-call candidate. Do not merge the text LoRA into the audio model by default;
+reuse the same contract, deterministic labels, dialogues, parser, policy, and behavioral probes.
 
-- Build a consented warehouse audio test set with noise, accents, PTT clipping and spoken IDs.
-- Measure SKU, quantity and location error rates rather than relying only on generic WER.
-- First try deterministic catalog/location correction.
-- If required, adapt LFM Audio with LoRA/adapters while freezing most of the model.
-- Later evaluate direct audio intent heads while retaining a transcript for audit and correction.
+- Build paired spoken/tool-call examples plus all-text twins from the validated warehouse flows.
+- Build a consented held-out TC501 set with noise, accents, PTT clipping and spoken identifiers.
+- Measure exact tool/argument behavior and entity error rates, not generic WER alone.
+- Train and serve with the same chat shape; test direct and cascaded routes on identical probes.
+- Keep confirmation, typed adapters, SQL, and write verification deterministic in Kotlin.
+- Promote the direct route only if it matches safety/quality and materially improves device latency
+  or memory.
+
+See [AUDIO_TOOL_CALLING_PLAN.md](AUDIO_TOOL_CALLING_PLAN.md).
 
 ### Later: reasoning and multimodal workflows
 

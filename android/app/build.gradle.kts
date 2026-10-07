@@ -3,16 +3,24 @@ plugins {
   alias(libs.plugins.compose.compiler)
 }
 
+val nextTextRuntimeProbe = providers.gradleProperty("nextTextRuntime").orNull == "true"
+val useNextTextRuntime = providers.gradleProperty("legacyTextRuntime").orNull != "true"
+
 android {
     namespace = "com.example.zebralocalai"
     compileSdk = 36
     defaultConfig {
-        applicationId = "com.example.zebralocalai"
+        applicationId = if (nextTextRuntimeProbe) {
+            "com.example.zebralocalai.runtimeprobe"
+        } else {
+            "com.example.zebralocalai"
+        }
         minSdk = 31
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField("boolean", "USE_NEXT_TEXT_RUNTIME", useNextTextRuntime.toString())
 
         ndk {
             abiFilters += "arm64-v8a"
@@ -32,11 +40,12 @@ android {
     buildFeatures {
       compose = true
       aidl = false
-      buildConfig = false
+      buildConfig = true
       shaders = false
     }
 
     sourceSets.getByName("main").assets.directories.add("../../seed_data")
+    sourceSets.getByName("main").assets.directories.add("../../contracts")
 
     packaging {
       jniLibs {

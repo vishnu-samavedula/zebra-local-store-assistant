@@ -161,6 +161,52 @@ class GenerativeWarehouseAgentTest {
   }
 
   @Test
+  fun `issue cannot use a catalog location that worker did not supply`() {
+    val result =
+      agent.process(
+        "Report 3 damaged units of SKU-5103-BLU-XL.",
+        inference(
+          ParsedNativeToolCall(
+            P1Tool.REPORT_ISSUE,
+            mapOf(
+              "sku" to "SKU-5103-BLU-XL",
+              "category" to "damage",
+              "quantity" to "3",
+              "location" to "C2-02",
+            ),
+          ),
+        ),
+      )
+
+    assertEquals(P1Risk.SAFE, result.prediction.risk)
+    assertTrue(result.prediction.missingFields.contains("location"))
+    assertEquals(null, result.proposal)
+  }
+
+  @Test
+  fun `replenishment cannot use a destination the worker did not supply`() {
+    val result =
+      agent.process(
+        "Add 4 units of SKU-1843-BLK-100.",
+        inference(
+          ParsedNativeToolCall(
+            P1Tool.REQUEST_REPLENISHMENT,
+            mapOf(
+              "sku" to "SKU-1843-BLK-100",
+              "quantity" to "4",
+              "quantity_mode" to "add",
+              "destination_location" to "A3-05",
+            ),
+          ),
+        ),
+      )
+
+    assertEquals(P1Risk.SAFE, result.prediction.risk)
+    assertTrue(result.prediction.missingFields.contains("destination location"))
+    assertEquals(null, result.proposal)
+  }
+
+  @Test
   fun `location blockage does not invent a product`() {
     val proposal =
       agent.process(

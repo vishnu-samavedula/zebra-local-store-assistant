@@ -27,6 +27,44 @@ class LiquidTextServerDeviceTest {
   )
 
   @Test
+  fun checkTwoItemsRecipeReturnsBothProducts() {
+    val context = ApplicationProvider.getApplicationContext<Context>()
+    val databaseName = "warehouse-check-two-items-device-test.db"
+    context.deleteDatabase(databaseName)
+    val model = P1BModel.from(File(context.filesDir, "models/lfm25-p1b"))
+    assertTrue("Trained P1B model is not staged", model.isRunnable)
+
+    val runner = LiquidTextRunner(context)
+    val agent = GenerativeWarehouseAgent(SqliteWarehouseRepository(context, databaseName))
+    val prompt = "Check stock for SKU-3201-TAN-OS and SKU-4902-CLR-500."
+    try {
+      val inference = runner.infer(model, prompt)
+      val result = agent.process(prompt, inference)
+      Log.i(
+        "P1B_TWO_ITEMS",
+        JSONObject()
+          .put("raw", inference.rawOutput.take(2_000))
+          .put("calls", JSONArray(inference.toolCalls.map { call -> JSONObject().put("name", call.tool.wireName).put("arguments", JSONObject(call.arguments)) }))
+          .put("result", result.message)
+          .toString(),
+      )
+
+      assertEquals(
+        "Model did not emit two reads. raw=${inference.rawOutput.take(1_200)} calls=${inference.toolCalls}",
+        2,
+        inference.toolCalls.size,
+      )
+      assertTrue(inference.toolCalls.all { it.tool.wireName == "inventory_search" })
+      assertEquals(2, result.toolCalls.size)
+      assertTrue("Wallet missing from result: ${result.message}", result.message.contains("Metro Zip Wallet"))
+      assertTrue("Pallet wrap missing from result: ${result.message}", result.message.contains("DockPro Pallet Wrap"))
+    } finally {
+      runner.shutdown()
+      context.deleteDatabase(databaseName)
+    }
+  }
+
+  @Test
   fun threeIndependentInventoryReadsCompleteWithoutTruncation() {
     val context = ApplicationProvider.getApplicationContext<Context>()
     val databaseName = "warehouse-three-read-device-test.db"
@@ -49,9 +87,9 @@ class LiquidTextServerDeviceTest {
       val result = agent.process(prompt, inference)
       assertEquals(3, result.toolCalls.size)
       assertTrue(result.toolCalls.all { it.state == ToolCallState.VERIFIED })
-      assertTrue(result.message.contains("Harbor Classic T-Shirt"))
-      assertTrue(result.message.contains("Metro Zip Wallet"))
-      assertTrue(result.message.contains("MetroRun Sneaker"))
+      assertTrue("Harbor lookup failed. calls=${inference.toolCalls} result=${result.message}", result.message.contains("Harbor Classic T-Shirt"))
+      assertTrue("Wallet lookup failed. calls=${inference.toolCalls} result=${result.message}", result.message.contains("Metro Zip Wallet"))
+      assertTrue("Sneaker lookup failed. calls=${inference.toolCalls} result=${result.message}", result.message.contains("MetroRun Sneaker"))
     } finally {
       runner.shutdown()
       context.deleteDatabase(databaseName)
@@ -96,8 +134,20 @@ class LiquidTextServerDeviceTest {
       val correctionInference = runner.infer(model, correction.modelInput)
       val correctionResult = agent.process(correction.auditTranscript, correctionInference)
       session = session.record("Actually make that 14 units.", correctionResult)
+      assertEquals(
+        "Correction emitted the wrong number of calls. input=${correction.modelInput} " +
+          "raw=${correctionInference.rawOutput.take(800)}",
+        1,
+        correctionResult.toolCalls.size,
+      )
       assertEquals("request_replenishment", correctionResult.toolCalls.single().tool.wireName)
-      assertEquals(P1Risk.CONFIRM_REQUIRED, correctionResult.prediction.risk)
+      assertEquals(
+        "Correction did not produce a complete proposal. calls=${correctionInference.toolCalls} " +
+          "missing=${correctionResult.prediction.missingFields} message=${correctionResult.message} " +
+          "raw=${correctionInference.rawOutput.take(800)}",
+        P1Risk.CONFIRM_REQUIRED,
+        correctionResult.prediction.risk,
+      )
       assertEquals("14", correctionResult.proposal?.arguments?.get("quantity"))
       assertEquals("B2-04", correctionResult.proposal?.arguments?.get("destination_location"))
       assertTrue("A three-turn request must stop accepting follow-ups", !session.canContinue)
@@ -196,6 +246,17 @@ class LiquidTextServerDeviceTest {
       val vagueResult = agent.process(vaguePrompt, runner.infer(model, vaguePrompt))
       assertTrue("Vague replenishment must not create an executable write", vagueResult.proposal == null)
       assertTrue("Vague replenishment must not request confirmation", vagueResult.prediction.risk != P1Risk.CONFIRM_REQUIRED)
+
+      listOf(
+        "File a damage report.",
+        "Report damaged SKU-5102-BLU-L at C2-01.",
+        "Report 3 damaged units of SKU-5103-BLU-XL.",
+      ).forEach { incompleteIssue ->
+        val issueResult = agent.process(incompleteIssue, runner.infer(model, incompleteIssue))
+        assertTrue("Incomplete issue must not create an executable write: $incompleteIssue", issueResult.proposal == null)
+        assertTrue("Incomplete issue must not request confirmation: $incompleteIssue", issueResult.prediction.risk != P1Risk.CONFIRM_REQUIRED)
+        assertTrue("Incomplete issue must return a safe response: $incompleteIssue", issueResult.message.isNotBlank())
+      }
 
       val correction =
         runner.infer(

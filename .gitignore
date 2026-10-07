@@ -50,6 +50,12 @@ datasets/**/.objects/
 *.log
 *.lock
 
+# Regenerable P1B working corpora and rendered review pages
+datasets/warehouse_tool_agent_native_*/
+datasets/warehouse_tool_agent_v5_*/
+review/warehouse-tool-dataset-*.html
+seed_data/p1b_v5_scenarios.jsonl
+
 # Local project / LQH working files
 NOTES.md
 SPEC.md

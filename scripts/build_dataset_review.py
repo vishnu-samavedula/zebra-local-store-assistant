@@ -29,10 +29,13 @@ def compact_row(index: int, raw: dict) -> dict:
     final = None
     for message in messages:
         for call in message.get("tool_calls") or []:
+            arguments = call["function"]["arguments"]
+            if isinstance(arguments, str):
+                arguments = json.loads(arguments)
             calls.append({
                 "id": call["id"],
                 "name": call["function"]["name"],
-                "arguments": json.loads(call["function"]["arguments"]),
+                "arguments": arguments,
             })
         if message["role"] == "tool":
             results.append({
@@ -44,8 +47,15 @@ def compact_row(index: int, raw: dict) -> dict:
             final = message["content"]
     user = next(message["content"] for message in messages if message["role"] == "user")
     return {
-        "id": index + 1,
-        "family": FAMILIES[min(index // 10, len(FAMILIES) - 1)],
+        "id": raw.get("sample_id") or index + 1,
+        "family": (
+            f"{raw['scenario_bucket']} / {raw['scenario_family']}"
+            if raw.get("scenario_bucket") and raw.get("scenario_family")
+            else FAMILIES[min(index // 10, len(FAMILIES) - 1)]
+        ),
+        "split": raw.get("split"),
+        "route": raw.get("route"),
+        "language_variant": raw.get("language_variant"),
         "user": user,
         "calls": calls,
         "results": results,
@@ -66,6 +76,12 @@ def main() -> None:
     if "__REVIEW_DATA__" not in template:
         raise ValueError("template is missing __REVIEW_DATA__")
     output = template.replace("__REVIEW_DATA__", json.dumps(review_rows, ensure_ascii=False).replace("</", "<\\/"))
+    output = output.replace(
+        "100 grounded examples · 10 scenario families · no training started",
+        f"{len(review_rows)} grounded examples · balanced P1B v5 candidate · no training started",
+    ).replace("0 / 100", f"0 / {len(review_rows)}").replace(
+        "warehouse-tool-review-v3", "warehouse-tool-review-v5"
+    )
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(output, encoding="utf-8")
     print(f"wrote {args.output} ({len(review_rows)} examples)")

@@ -175,7 +175,7 @@ class GenerativeWarehouseAgent(private val repository: WarehouseRepository) {
       if (productRequired && candidates.size != 1) add("one exact product or SKU")
       if (!productRequired && productQuery != null && candidates.size > 1) add("one exact product or SKU")
       if (productRequired && quantity.isNullOrBlank()) add("quantity")
-      if (location.isNullOrBlank()) add("location")
+      if (location.isNullOrBlank() || !transcript.containsWriteValue(location)) add("location")
     }
     if (missing.isNotEmpty()) return clarification(transcript, call, inference, candidates, missing, "report")
     val product = candidates.singleOrNull()
@@ -213,7 +213,7 @@ class GenerativeWarehouseAgent(private val repository: WarehouseRepository) {
       if (candidates.size != 1) add("one exact product or SKU")
       if (quantity == null || quantity <= 0) add("a positive quantity")
       if (mode !in setOf("add", "target_level")) add("quantity mode add or target level")
-      if (destination.isNullOrBlank()) add("destination location")
+      if (destination.isNullOrBlank() || !transcript.containsWriteValue(destination)) add("destination location")
     }
     if (missing.isNotEmpty()) return clarification(transcript, call, inference, candidates, missing, "replenishment")
     val product = candidates.single()
@@ -320,5 +320,17 @@ class GenerativeWarehouseAgent(private val repository: WarehouseRepository) {
   companion object {
     private const val MAX_CALLS = 3
     private val WRITE_TOOLS = setOf(P1Tool.REPORT_ISSUE, P1Tool.REQUEST_REPLENISHMENT)
+
+    /**
+     * Write destinations must be grounded in worker-authored text. The model may normalize
+     * punctuation and spacing in location codes, so compare their alphanumeric forms.
+     */
+    private fun String.containsWriteValue(value: String): Boolean {
+      val normalizedTranscript = uppercase().replace(NON_ALPHANUMERIC, "")
+      val normalizedValue = value.uppercase().replace(NON_ALPHANUMERIC, "")
+      return normalizedValue.isNotBlank() && normalizedTranscript.contains(normalizedValue)
+    }
+
+    private val NON_ALPHANUMERIC = Regex("[^A-Z0-9]")
   }
 }

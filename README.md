@@ -14,7 +14,7 @@ An offline-first Android demo that runs Liquid AI models locally on a Zebra TC50
 
 The current build provides one focused Store Assistant experience:
 
-- Audio or recipe text to schema-free native tool calls, with bounded
+- Audio, typed input, or recipe text to Liquid-native tool calls, with bounded
   three-turn clarification, expansion, and correction by voice.
 - Five allowlisted tools: `inventory_search`, `location_contents`, `get_task_status`, `report_issue`, and `request_replenishment`.
 - Parallel independent reads, with each call isolated during retrieval.
@@ -31,7 +31,7 @@ flowchart LR
     WAV --> Audio[LFM2.5-Audio 1.5B Q4<br/>persistent llama.cpp server · CPU]
     Audio --> Transcript[Text transcript]
     Recipes[On-screen recipe] --> ToolModel
-    Transcript --> ToolModel[LFM2.5-350M P1B v4 Q4_K<br/>schema-free tool inference · CPU]
+    Transcript --> ToolModel[LFM2.5-350M Warehouse Stable Q4_K<br/>native tool inference · CPU]
     ToolModel --> Parser[Strict native-call parser<br/>allowlisted names + arguments]
     Parser --> Policy{Kotlin policy boundary}
     Policy -->|independent read| ReadAdapters[Inventory / location / task adapters]
@@ -56,7 +56,7 @@ The bundled catalog, task records, SQLite schema, and seeded issue/replenishment
 - Verified development SKU: QCM6690 / Volcano, 8 CPU cores, approximately 12 GB RAM
 - Current backend: CPU. NPU execution is intentionally shown as inactive because it is not wired in this prototype.
 - UI: Kotlin + Jetpack Compose
-- Local inference: Liquid-compatible `llama.cpp` Android servers
+- Local inference: Liquid-compatible `llama.cpp` Android servers; text runtime pinned to `b11456`
 
 ### Measured TC501 footprint
 
@@ -71,16 +71,20 @@ Snapshot taken after both models were warm and a P1 parallel-read request comple
 
 The snapshot reported zero swap. Memory varies with request length, allocator state, and Android accounting, so treat it as an observed demo footprint rather than a guaranteed ceiling.
 
-The active model set requires approximately **1.35 GiB** of app-private storage. The development device currently uses **1.71 GiB** because it also retains a previous 362 MiB P1B checkpoint. The synthetic SQLite database is only about 108 KiB and is not a meaningful part of either the RAM or storage footprint.
+The active model set requires approximately **1.35 GiB** of app-private storage. Obsolete P1B checkpoints are not retained on the development device. The synthetic SQLite database is only about 108 KiB and is not a meaningful part of either the RAM or storage footprint.
 
 Two persistent model processes are used:
 
 | Stage | Model artifact | Purpose |
 |---|---|---|
 | Audio | `LFM2.5-Audio-1.5B-Q4_0.gguf` plus projector, tokenizer, and vocoder | Speech understanding / transcription |
-| Tool agent | `LFM2.5-350M-P1B-SchemaFree-v4-Q4_K.gguf` | Native function-call generation |
+| Tool agent | `LFM2.5-350M-Warehouse-Stable-Q4_K.gguf` | Native function-call generation, including up to three independent reads |
 
 Model weights and native `.so` runtime binaries are deliberately excluded from Git. Obtain them under their respective licenses and place/import them as described in the [developer runbook](docs/DEV_RUNBOOK.md). The MIT license in this repository covers this project's code and documentation only—not Liquid model weights or third-party runtime binaries.
+
+An isolated compatibility probe confirmed that the 350M Q4_K model can execute on the TC501's
+Hexagon v73 NPU. See the [NPU smoke-test results](docs/NPU_SMOKE_TEST.md); the production APK remains
+CPU-only while partial offload is evaluated separately.
 
 ## Repository map
 
@@ -112,6 +116,16 @@ cd android
 ./gradlew testDebugUnitTest assembleDebug assembleDebugAndroidTest
 ```
 
+Native binaries remain untracked. Rebuild the pinned static CPU text server with:
+
+```bash
+./scripts/build_android_text_runtime.sh /absolute/path/to/android-ndk
+```
+
+The normal build uses the new server. Add `-PlegacyTextRuntime=true` to build with the retained
+legacy text server during rollback testing. Add `-PnextTextRuntime=true` to give a debug probe APK
+the side-by-side package ID `com.example.zebralocalai.runtimeprobe`.
+
 Install the debug build:
 
 ```bash
@@ -124,11 +138,13 @@ For the complete device setup, model filenames/checksums, ADB tests, and trouble
 
 ## Training and data
 
-The P1B checkpoint was trained with LQH 0.23 using synthetic warehouse requests grounded in the catalog and task fixtures. The promoted balanced v4 build internalizes the frozen five-tool contract, so Android sends a short schema-free system prompt instead of injecting full JSON schemas on every request.
+The P1B checkpoint was trained with LQH 0.23 using synthetic warehouse requests grounded in the catalog and task fixtures. Android applies the canonical Liquid chat template with the frozen five-tool schema. Device ablation showed that this full-schema path is materially more reliable than compact-signature or schema-free prompting for the current checkpoint.
 
 Useful references:
 
 - [Current state and roadmap](docs/CURRENT_STATE_AND_ROADMAP.md)
+- [Friction and decision log](docs/FRICTION_LOG.md)
+- [Direct audio tool-calling plan](docs/AUDIO_TOOL_CALLING_PLAN.md)
 - [P1B training plan](docs/P1B_TRAINING_PLAN.md)
 - [Schema ablation](docs/P1B_SCHEMA_ABLATION.md)
 - [P1 app/tool contract](docs/P1A_APP_CONTRACT.md)

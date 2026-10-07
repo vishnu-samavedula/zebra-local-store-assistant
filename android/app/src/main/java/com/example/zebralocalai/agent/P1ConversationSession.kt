@@ -34,12 +34,19 @@ class P1ConversationSession private constructor(
       (turns.map(P1ConversationTurn::workerText) + latest)
         .joinToString(" ") { "${it.compact(MAX_TEXT_CHARS).trimEnd('.', '?', '!')}." }
     val verified = previous.verifiedFacts?.compact(MAX_FACT_CHARS)
+    val pendingAction =
+      previous.arguments.filterKeys { it in previous.tool.contextArgumentNames }.takeIf { it.isNotEmpty() }?.entries
+        ?.joinToString(", ") { (key, value) -> "$key=$value" }
+        ?.let { "Current action context from the previous step: ${previous.tool.wireName}($it)" }
+        ?.compact(MAX_FACT_CHARS)
     val modelInput =
-      if (verified == null) {
-        workerHistory.take(MAX_MODEL_INPUT_CHARS)
-      } else {
-        "$workerHistory Verified local result from the previous step: $verified".take(MAX_MODEL_INPUT_CHARS)
-      }
+      listOfNotNull(
+          workerHistory,
+          verified?.let { "Verified local result from the previous step: $it" },
+          pendingAction,
+        )
+        .joinToString(" ")
+        .take(MAX_MODEL_INPUT_CHARS)
 
     return P1ConversationRequest(
       modelInput = modelInput,
@@ -50,7 +57,12 @@ class P1ConversationSession private constructor(
 
   fun record(workerText: String, result: P1AgentResult): P1ConversationSession {
     check(turns.size < MAX_TURNS) { "Conversation has reached its turn limit" }
-    val arguments = result.proposal?.arguments ?: result.toolCalls.lastOrNull()?.arguments.orEmpty()
+    val arguments =
+      result.proposal?.arguments
+        ?: result.toolCalls.lastOrNull()
+          ?.takeUnless { it.state == ToolCallState.VERIFIED }
+          ?.arguments
+          .orEmpty()
     val verifiedFacts =
       when {
         result.toolCalls.any { call -> call.state == ToolCallState.VERIFIED } || result.verification != null -> result.message
@@ -81,6 +93,17 @@ class P1ConversationSession private constructor(
     private const val MAX_FACT_CHARS = 360
     private const val MAX_MODEL_INPUT_CHARS = 1_800
     private const val MAX_CANDIDATES = 3
+
+    private val P1Tool.contextArgumentNames: Set<String>
+      get() =
+        when (this) {
+          P1Tool.INVENTORY_SEARCH -> setOf("semantic_query", "sku", "color", "size", "location", "minimum_quantity")
+          P1Tool.LOCATION_CONTENTS -> setOf("location", "semantic_query")
+          P1Tool.GET_TASK_STATUS -> setOf("task_id", "task_type", "status")
+          P1Tool.REPORT_ISSUE -> setOf("description", "category", "semantic_query", "sku", "quantity", "location", "task_id")
+          P1Tool.REQUEST_REPLENISHMENT -> setOf("semantic_query", "sku", "quantity", "quantity_mode", "destination_location", "reason", "task_id")
+          P1Tool.NONE -> emptySet()
+        }
 
     private fun String.compact(limit: Int) =
       replace(Regex("\\s+"), " ").trim().let { if (it.length <= limit) it else "${it.take(limit - 1)}…" }

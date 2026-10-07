@@ -1,6 +1,25 @@
 # P1B Generative Tool-Calling Training Plan
 
-Last updated: 2026-09-22.
+Last updated: 2026-10-06.
+
+## Native-tool baseline reset
+
+The production contract now follows Liquid's native tool-use path: a concise policy prompt plus
+the five JSON tool definitions are passed to `/apply-template`, and raw `/completion` emits the
+Liquid Pythonic call surface. The canonical files are
+`contracts/warehouse_tool_agent_native_v1.md` and `contracts/warehouse_tools_v1.json`.
+
+The official untouched `LFM2.5-350M-Q4_K_M.gguf` was staged separately on the TC501 and exercised
+against eight smoke cases. After fixing the runtime to recover a leading native call when
+llama.cpp strips special tokens and retains Liquid's optional follow-up prose, the base achieved
+5/8 exact tool-name sequences. It selected inventory, location, task and issue tools and correctly
+declined an unsupported weather request. Remaining errors were replenishment misrouting,
+multi-read tool selection, false activation on incomplete replenishment, and incorrect or invented
+arguments. These are the behavioral targets for the next LoRA; native format and parsing are no
+longer the primary failure.
+
+Do not train another schema-free corpus. The next corpus must render every row with the exact
+production prompt and tool definitions through the model tokenizer's `apply_chat_template` path.
 
 ## Objective
 
@@ -155,6 +174,11 @@ judge model must not be the sole author of both an example and its correctness l
 
 ## Coverage
 
+The next retraining corpus is governed by `docs/P1B_V5_CORPUS_GATE.md`. Its 600-row candidate
+mix, train/evaluation split, audit metadata and deterministic release checks supersede informal
+headline balancing. Training must not begin until `scripts/audit_p1b_corpus.py` reports zero
+errors.
+
 - Product names, SKUs, aliases, colors, sizes and spoken identifiers.
 - Complete and incomplete inventory searches and issue reports.
 - Damage, discrepancy, blocked-location and general issue categories.
@@ -205,8 +229,38 @@ Initial promotion targets:
 - Exact executable-action match at least 0.93.
 - Zero invented canonical IDs outside the supplied/allowed set.
 - Zero unconfirmed writes in application integration tests.
+- Zero generated `None`/`null` optional arguments on the locked tool suite.
+- Generated calls contain only properties belonging to the selected tool; global argument-union
+  serialization is a failure even when the parser can discard its null fields.
+- Generated-token median and p95 remain close to compact rendered references. Compare early
+  checkpoints instead of selecting solely by judge score or teacher-forced evaluation loss.
 
 Thresholds are provisional until the frozen evaluation set and error-cost rubric exist.
+
+### Corrective compact-preservation recipe
+
+The next controlled run is
+`runs/sft_lfm25_350m_warehouse_compact_preserve_v1.recipe.json`. It deliberately reduces adapter
+capacity and update strength after the rank-32, attention-plus-MLP run regressed during free
+generation:
+
+- LoRA rank `8`, alpha `16`, dropout `0.05`.
+- Target only `q_proj`, `k_proj`, `v_proj`, and `o_proj`.
+- Learning rate `3e-5`, one epoch, effective batch selected by LQH (currently `16` for 540 rows).
+- Seed `42`, no sweep, pinned LFM2.5-350M base revision.
+
+Do not promote this run based on training loss or parseability alone. Unconstrained outputs must
+pass the compactness gates above before merging, GGUF conversion, or Android installation.
+
+The one-epoch `v1` run produced only 34 optimizer updates and underlearned. The controlled `v2`
+follow-up keeps every setting fixed and raises only `num_epochs` from `1` to `3`, producing about
+102 optimizer updates.
+
+The `v2` run reduced teacher-forced loss but did not improve free-generation behavior. The next
+candidate, `sft_lfm25_350m_warehouse_compact_balanced_v1`, uses rank `16`, alpha `32`, and targets
+the attention projections plus `w1`, `w2`, and `w3`. It deliberately continues to exclude
+`in_proj` and `out_proj`. Promotion is based first on deterministic exact-call and compactness
+metrics; the LLM judge score is secondary.
 
 ## Execution plan
 

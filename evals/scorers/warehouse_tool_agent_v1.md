@@ -15,8 +15,9 @@ Score the complete labeled conversation as a candidate supervised fine-tuning ex
 consistency of the worker request, assistant calls, tool results, and final response. Do not score
 whether you personally prefer different wording.
 
-Read tool arguments from each nested `assistant.tool_calls[].function.arguments` JSON string. Do
-not claim an argument is missing until that JSON has been parsed and inspected.
+Read tool arguments from each nested `assistant.tool_calls[].function.arguments` mapping. Some
+legacy traces may encode that mapping as a JSON string; parse it before judging. Do not claim an
+argument is missing until the complete mapping has been inspected.
 
 ## Contract semantics
 
@@ -36,6 +37,14 @@ not claim an argument is missing until that JSON has been parsed and inspected.
   shows availability below target. Do not require a prose response after that proposal.
 - When one utterance requests two writes, policy permits only one write proposal. The only correct
   output is a clarification asking which write to prepare first. Never reward emitting both writes.
+- A clarification may follow a safe grounding read. When a worker supplies a location but omits
+  the damaged or replenished product, `location_contents` followed by a concise choice question is
+  correct. When a worker supplies a product but omits a relevant location, `inventory_search`
+  followed by confirmation is correct. Catalog placement narrows the choices but does not prove
+  where physical damage occurred or which replenishment destination the worker intends.
+- If a worker-supplied location returns no inventory, the correct grounded response reports no
+  products found and asks the worker to verify the location. It must not invent a product or
+  propose a write.
 
 The following are explicitly correct and must not be penalized:
 
@@ -72,6 +81,9 @@ the delta of 4. Likewise, a trace containing `destination_location` or `sku` in 
 
 - Score at most **3** for a wrong tool, malformed tool call, invented operational fact, ignored
   negation, or write executed without confirmation.
+- Score at most **3** when a call explicitly emits `None`/`null`/empty values for omitted optional
+  arguments, or includes arguments that do not belong to the selected tool. These are malformed,
+  expanded calls even when a permissive parser accepts them.
 - Score at most **5** when the worker utterance adds an intent that the labeled action ignores.
 - Score at most **6** when a dependent result is used before the corresponding tool response.
 

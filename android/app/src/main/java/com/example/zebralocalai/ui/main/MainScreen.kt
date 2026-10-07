@@ -18,6 +18,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -25,10 +27,15 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
@@ -38,6 +45,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -110,9 +118,14 @@ private fun StoreAssistantContent(
         Box(Modifier.padding(24.dp)) { Processing(state.status, onCancel) }
       }
     } else if (hasResult) {
-      ResultCard(state, onClear, onConfirm, onCancelAction, onContinue)
+      ResultCard(state, onClear, onConfirm, onCancelAction, onContinue, onTask)
     } else {
       VoiceHero(state, onTalk)
+      TextRequestComposer(
+        enabled = state.modelsWarm && state.phase in setOf(P1Phase.READY, P1Phase.COMPLETE, P1Phase.ERROR),
+        onSubmit = onTask,
+        modifier = Modifier.padding(horizontal = 20.dp),
+      )
       CommonTasks(
         enabled = state.modelsWarm && state.phase in setOf(P1Phase.READY, P1Phase.COMPLETE, P1Phase.ERROR),
         onTask = onTask,
@@ -143,6 +156,7 @@ private fun ResultCard(
   onConfirm: () -> Unit,
   onCancelAction: () -> Unit,
   onContinue: () -> Unit,
+  onTask: (String) -> Unit,
 ) {
   val result = state.result ?: return
   Card(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp), shape = RoundedCornerShape(22.dp)) {
@@ -211,12 +225,17 @@ private fun ResultCard(
 
       if (state.canContinue && state.phase in setOf(P1Phase.COMPLETE, P1Phase.AWAITING_CONFIRMATION, P1Phase.ERROR)) {
         val needsDetails = result.prediction.missingFields.isNotEmpty()
+        TextRequestComposer(
+          enabled = true,
+          onSubmit = onTask,
+          placeholder = if (needsDetails) "Type the missing details…" else "Continue this request…",
+        )
         OutlinedButton(onClick = onContinue, modifier = Modifier.fillMaxWidth()) {
           Text(
             when {
               state.phase == P1Phase.AWAITING_CONFIRMATION -> "Change request by voice"
-              needsDetails -> "Add missing details"
-              else -> "Continue this request"
+              needsDetails -> "Add missing details by voice"
+              else -> "Continue by voice"
             },
           )
         }
@@ -224,6 +243,47 @@ private fun ResultCard(
 
       P1Metrics(state)
       OutlinedButton(onClick = onClear, modifier = Modifier.fillMaxWidth()) { Text("New request") }
+    }
+  }
+}
+
+@Composable
+private fun TextRequestComposer(
+  enabled: Boolean,
+  onSubmit: (String) -> Unit,
+  modifier: Modifier = Modifier,
+  placeholder: String = "Type a warehouse request…",
+) {
+  var input by rememberSaveable { mutableStateOf("") }
+  val submit = {
+    input.trim().takeIf(String::isNotEmpty)?.let {
+      onSubmit(it)
+      input = ""
+    }
+    Unit
+  }
+  Surface(
+    modifier = modifier.fillMaxWidth(),
+    shape = RoundedCornerShape(18.dp),
+    color = MaterialTheme.colorScheme.surface,
+    shadowElevation = 2.dp,
+  ) {
+    Row(
+      modifier = Modifier.padding(10.dp),
+      verticalAlignment = Alignment.CenterVertically,
+      horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+      OutlinedTextField(
+        value = input,
+        onValueChange = { input = it },
+        modifier = Modifier.weight(1f),
+        enabled = enabled,
+        placeholder = { Text(placeholder) },
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
+        keyboardActions = KeyboardActions(onSend = { submit() }),
+      )
+      Button(onClick = submit, enabled = enabled && input.isNotBlank()) { Text("Send") }
     }
   }
 }
@@ -430,7 +490,7 @@ private fun CommonTasks(enabled: Boolean, onTask: (String) -> Unit) {
       TaskRecipe("⚠", "Report blockage", "Fallen pallet · B2-01", "Report location B2-01 blocked by a fallen pallet."),
       TaskRecipe("+", "Add inventory", "8 slides · C1-02", "Add exactly 8 units of SKU-4103-BLK-100 to C1-02."),
       TaskRecipe("⇧", "Request restock", "12 navy shirts · B2-04", "Request replenishment: add exactly 12 units of SKU-2202-NVY-M to B2-04."),
-      TaskRecipe("Ⅱ", "Check two items", "Wallet + pallet wrap", "Check both Tan Metro Zip Wallet size One Size and Clear DockPro Pallet Wrap size 500 m."),
+      TaskRecipe("Ⅱ", "Check stock of 2 items", "Two SKU lookup", "Check stock for SKU-3201-TAN-OS and SKU-4902-CLR-500."),
       TaskRecipe("Ⅱ", "Find two products", "T-shirts + jeans", "Where can I find Harbor Classic T shirts and Foundry Straight jeans?"),
     )
   Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -509,18 +569,37 @@ private fun ReportField(label: String, value: String) {
 @Composable
 private fun P1Metrics(state: StoreAssistantUiState) {
   val result = state.result ?: return
+  val estimatedTextTtft =
+    state.p1bPromptMillis?.let { prompt ->
+      prompt + (state.p1bDecodeTokensPerSecond?.takeIf { it > 0.0 }?.let { (1_000.0 / it).toLong() } ?: 0L)
+    }
   Surface(shape = RoundedCornerShape(14.dp), color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)) {
     Column(Modifier.padding(horizontal = 12.dp, vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
       Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
         MetricValue("Total", state.totalElapsedMillis?.let(::formatSeconds) ?: "—")
-        MetricValue("ASR TTFS", state.audioTtfsMillis?.let { "$it ms" } ?: "—")
+        MetricValue(
+          if (state.audioTtfsMillis != null) "ASR TTFS" else "TTFT est.",
+          (state.audioTtfsMillis ?: estimatedTextTtft)?.let { "$it ms" } ?: "—",
+        )
         MetricValue("P1B", "${result.timings.encoderMillis} ms")
         MetricValue("Decode", state.p1bDecodeTokensPerSecond?.let { String.format(Locale.US, "%.1f t/s", it) } ?: "—")
       }
       val detail = buildList {
         if (state.modelsWarm) add("Warm session")
         state.coldLoadMillis?.let { add("startup ${formatSeconds(it)} once") }
-        state.p1bPromptTokensPerSecond?.let { add("prefill ${String.format(Locale.US, "%.1f", it)} t/s") }
+        if (state.p1bPromptTokens != null || state.p1bPromptTokensPerSecond != null) {
+          add(
+            "prefill ${state.p1bPromptTokens?.let { "$it tok" } ?: "—"}" +
+              state.p1bPromptMillis?.let { " / $it ms" }.orEmpty() +
+              state.p1bPromptTokensPerSecond?.let { " / ${String.format(Locale.US, "%.1f", it)} t/s" }.orEmpty(),
+          )
+        }
+        if (state.p1bPredictedTokens != null || state.p1bPredictedMillis != null) {
+          add(
+            "output ${state.p1bPredictedTokens?.let { "$it tok" } ?: "—"}" +
+              state.p1bPredictedMillis?.let { " / $it ms" }.orEmpty(),
+          )
+        }
         add("search ${result.timings.searchMillis} ms")
         if (result.timings.toolMillis > 0) add("tool ${result.timings.toolMillis} ms")
       }
