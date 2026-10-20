@@ -1,4 +1,12 @@
-THIRD-PARTY MODEL LICENSING NOTICE
+APPLICATION AND MODEL LICENSING NOTICE
+
+Application source
+------------------
+The MIT license in LICENSE applies to the repository-owned application,
+shared harness and supporting application source/documentation only. It
+does not license model weights, private checkpoints, training recipes,
+training data, recordings, or separately supplied model/runtime artifacts.
+Those artifacts retain their applicable upstream and accompanying terms.
 
 Liquid AI model terms
 ---------------------

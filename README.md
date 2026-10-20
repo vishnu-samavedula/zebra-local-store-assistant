@@ -26,3 +26,7 @@ The active generation runtime is llama.cpp on CPU. Procedure retrieval uses a se
 This repository contains the app, shared harness, synthetic demo catalog/procedures, contracts, and public regression tests. Checkpoint weights, native runtime binaries, generated retrieval assets, recordings, local databases, credentials, training recipes, and training material are maintained separately and are excluded from the public tree.
 
 A fresh clone needs the compatible runtime/model artifacts for device inference. See the developer runbook for prerequisites and source-only checks. This is a focused proof of concept; synthetic tests and selected device requests do not establish real warehouse reliability.
+
+## Licensing
+
+The [MIT license](LICENSE) applies to the application and harness source only. Separately supplied checkpoints are not MIT-licensed by this repository; they carry the [LFM model license](licenses/LFM-Open-License-1.0.txt) where applicable and any additional upstream terms. See [licensing notices](THIRD_PARTY_NOTICES). Model weights remain outside public Git.
