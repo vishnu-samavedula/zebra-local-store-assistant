@@ -1,0 +1,694 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:liquid-industrial:model-output:1.0",
+  "title": "Warehouse model interpretation output",
+  "description": "Logical model output, not Android runtime integration. Calls may be incomplete proposals; execution requires harness validation.",
+  "oneOf": [
+    {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "const": "1.0"
+        },
+        "action": {
+          "const": "propose"
+        },
+        "calls": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/call"
+          },
+          "minItems": 1,
+          "maxItems": 3
+        }
+      },
+      "required": [
+        "schema_version",
+        "action",
+        "calls"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "const": "1.0"
+        },
+        "action": {
+          "const": "clarify"
+        },
+        "calls": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/call"
+          },
+          "minItems": 0,
+          "maxItems": 3
+        }
+      },
+      "required": [
+        "schema_version",
+        "action",
+        "calls"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "const": "1.0"
+        },
+        "action": {
+          "const": "correct"
+        },
+        "calls": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/correction_call"
+          },
+          "minItems": 1,
+          "maxItems": 3
+        }
+      },
+      "required": [
+        "schema_version",
+        "action",
+        "calls"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "const": "1.0"
+        },
+        "action": {
+          "const": "confirm"
+        },
+        "calls": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/call"
+          },
+          "minItems": 0,
+          "maxItems": 0
+        }
+      },
+      "required": [
+        "schema_version",
+        "action",
+        "calls"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "const": "1.0"
+        },
+        "action": {
+          "const": "cancel"
+        },
+        "calls": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/call"
+          },
+          "minItems": 0,
+          "maxItems": 0
+        }
+      },
+      "required": [
+        "schema_version",
+        "action",
+        "calls"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "const": "1.0"
+        },
+        "action": {
+          "const": "show_more"
+        },
+        "calls": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/call"
+          },
+          "minItems": 0,
+          "maxItems": 0
+        }
+      },
+      "required": [
+        "schema_version",
+        "action",
+        "calls"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "const": "1.0"
+        },
+        "action": {
+          "const": "unsupported"
+        },
+        "calls": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/call"
+          },
+          "minItems": 0,
+          "maxItems": 0
+        }
+      },
+      "required": [
+        "schema_version",
+        "action",
+        "calls"
+      ],
+      "additionalProperties": false
+    }
+  ],
+  "$defs": {
+    "variant": {
+      "type": "object",
+      "properties": {
+        "color": {
+          "type": "string",
+          "minLength": 1
+        },
+        "size": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false,
+      "minProperties": 1
+    },
+    "call": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "tool": {
+              "const": "inventory_lookup"
+            },
+            "arguments": {
+              "type": "object",
+              "properties": {
+                "operation": {
+                  "enum": [
+                    "count_stock",
+                    "find_location",
+                    "find_product",
+                    "find_variant",
+                    "list_section_contents",
+                    "list_bin_contents"
+                  ]
+                },
+                "product_name": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "variant": {
+                  "$ref": "#/$defs/variant"
+                },
+                "category": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "section": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "bin": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "tool",
+            "arguments"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "tool": {
+              "const": "report_general_concern"
+            },
+            "arguments": {
+              "type": "object",
+              "properties": {
+                "observation": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "location": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "product_name": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "variant": {
+                  "$ref": "#/$defs/variant"
+                },
+                "quantity": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "observed_count": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "on_behalf_of_coworker": {
+                  "type": "boolean"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "tool",
+            "arguments"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "tool": {
+              "const": "report_product_damage"
+            },
+            "arguments": {
+              "type": "object",
+              "properties": {
+                "product_name": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "variant": {
+                  "$ref": "#/$defs/variant"
+                },
+                "damage_description": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "location": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "quantity": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "tool",
+            "arguments"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "tool": {
+              "const": "request_replenishment"
+            },
+            "arguments": {
+              "type": "object",
+              "properties": {
+                "product_name": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "variant": {
+                  "$ref": "#/$defs/variant"
+                },
+                "quantity": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "reason": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "tool",
+            "arguments"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "tool": {
+              "const": "task_lookup"
+            },
+            "arguments": {
+              "type": "object",
+              "properties": {
+                "operation": {
+                  "const": "list_assigned_tasks"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "tool",
+            "arguments"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "tool": {
+              "const": "create_report"
+            },
+            "arguments": {
+              "type": "object",
+              "properties": {},
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "tool",
+            "arguments"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "correction_call": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "tool": {
+              "const": "inventory_lookup"
+            },
+            "arguments": {
+              "type": "object",
+              "properties": {
+                "operation": {
+                  "enum": [
+                    "count_stock",
+                    "find_location",
+                    "find_product",
+                    "find_variant",
+                    "list_section_contents",
+                    "list_bin_contents"
+                  ]
+                },
+                "product_name": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "variant": {
+                  "$ref": "#/$defs/variant"
+                },
+                "category": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "section": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "bin": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              },
+              "additionalProperties": false
+            },
+            "clear_fields": {
+              "type": "array",
+              "items": {
+                "enum": [
+                  "operation",
+                  "product_name",
+                  "variant",
+                  "category",
+                  "section",
+                  "bin",
+                  "variant.color",
+                  "variant.size"
+                ]
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            }
+          },
+          "required": [
+            "tool",
+            "arguments"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "tool": {
+              "const": "report_general_concern"
+            },
+            "arguments": {
+              "type": "object",
+              "properties": {
+                "observation": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "location": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "product_name": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "variant": {
+                  "$ref": "#/$defs/variant"
+                },
+                "quantity": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "observed_count": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "on_behalf_of_coworker": {
+                  "type": "boolean"
+                }
+              },
+              "additionalProperties": false
+            },
+            "clear_fields": {
+              "type": "array",
+              "items": {
+                "enum": [
+                  "observation",
+                  "location",
+                  "product_name",
+                  "variant",
+                  "quantity",
+                  "observed_count",
+                  "on_behalf_of_coworker",
+                  "variant.color",
+                  "variant.size"
+                ]
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            }
+          },
+          "required": [
+            "tool",
+            "arguments"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "tool": {
+              "const": "report_product_damage"
+            },
+            "arguments": {
+              "type": "object",
+              "properties": {
+                "product_name": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "variant": {
+                  "$ref": "#/$defs/variant"
+                },
+                "damage_description": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "location": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "quantity": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              },
+              "additionalProperties": false
+            },
+            "clear_fields": {
+              "type": "array",
+              "items": {
+                "enum": [
+                  "product_name",
+                  "variant",
+                  "damage_description",
+                  "location",
+                  "quantity",
+                  "variant.color",
+                  "variant.size"
+                ]
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            }
+          },
+          "required": [
+            "tool",
+            "arguments"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "tool": {
+              "const": "request_replenishment"
+            },
+            "arguments": {
+              "type": "object",
+              "properties": {
+                "product_name": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "variant": {
+                  "$ref": "#/$defs/variant"
+                },
+                "quantity": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "reason": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "additionalProperties": false
+            },
+            "clear_fields": {
+              "type": "array",
+              "items": {
+                "enum": [
+                  "product_name",
+                  "variant",
+                  "quantity",
+                  "reason",
+                  "variant.color",
+                  "variant.size"
+                ]
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            }
+          },
+          "required": [
+            "tool",
+            "arguments"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "tool": {
+              "const": "task_lookup"
+            },
+            "arguments": {
+              "type": "object",
+              "properties": {
+                "operation": {
+                  "const": "list_assigned_tasks"
+                }
+              },
+              "additionalProperties": false
+            },
+            "clear_fields": {
+              "type": "array",
+              "items": {
+                "enum": [
+                  "operation"
+                ]
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            }
+          },
+          "required": [
+            "tool",
+            "arguments"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "tool": {
+              "const": "create_report"
+            },
+            "arguments": {
+              "type": "object",
+              "properties": {},
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "tool",
+            "arguments"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    }
+  }
+}

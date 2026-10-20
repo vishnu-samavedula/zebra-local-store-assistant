@@ -1,0 +1,3 @@
+{"task_id":"DEMO-TASK-01","assigned_worker":"demo-worker","description":"Count recorded stock in Section A1 and report any discrepancy.","status":"assigned","updated_at":"2026-10-12T12:00:00Z"}
+{"task_id":"DEMO-TASK-02","assigned_worker":"demo-worker","description":"Check incoming fragrance cartons against the receiving list before stock registration.","status":"in_progress","updated_at":"2026-10-12T12:00:00Z"}
+{"task_id":"DEMO-TASK-03","assigned_worker":"demo-worker","description":"Review the approved restock list for Section C1 with the floor supervisor.","status":"assigned","updated_at":"2026-10-12T12:00:00Z"}

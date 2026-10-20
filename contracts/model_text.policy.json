@@ -1,0 +1,35 @@
+{
+  "status": "implemented_installed_device_verified",
+  "owner": "warehouse_harness.engine.APPROVED_MODEL_TEXT",
+  "allowed_model_text": [
+    "Do you want a stock count or location?",
+    "Do you want the stock count or the product location?",
+    "I can help with warehouse tasks.",
+    "I can look up inventory, record concerns or requests, and show assigned tasks.",
+    "Please specify stock count or location.",
+    "What damage can you see?",
+    "What did you notice?",
+    "What exact count did you observe?",
+    "What exact quantity do you need?",
+    "What would you like to do?",
+    "Where did this happen?",
+    "Where did you notice this? A description is enough.",
+    "Which bin in that section?",
+    "Which color?",
+    "Which product do you mean?",
+    "Which product or category should I check?",
+    "Which product or inventory lookup do you need?",
+    "Which product?",
+    "Which section?",
+    "Which size?",
+    "Which variant do you mean?",
+    "Which warehouse task do you need?"
+  ],
+  "terminal_scope_replies": [
+    "I can help with warehouse tasks.",
+    "I can look up inventory, record concerns or requests, and show assigned tasks."
+  ],
+  "rule": "Exact approved strings only after stripping surrounding whitespace. All other model prose is rejected; trusted harness/app result and card text are separate. Native tool proposals use the existing schema.",
+  "training_rule": "No arbitrary prose or safety guidance targets; unknown fields use partial calls, genuinely unclear/unsupported intent uses approved fixed text.",
+  "verification": "../output/warehouse-evaluation-review/harness-compatibility-verification.json"
+}

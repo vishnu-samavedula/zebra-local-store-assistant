@@ -1,0 +1,4 @@
+{"event_id":"demo-inventory","transcript":"How many Cloudweight Hoodies in ink, size medium?","model_output":{"schema_version":"1.0","action":"propose","calls":[{"tool":"inventory_lookup","arguments":{"operation":"count_stock","product_name":"Cloudweight Hoodie","variant":{"color":"Ink","size":"M"}}}]}}
+{"event_id":"demo-concern","transcript":"Glass pieces on the floor near the perfume shelves.","model_output":{"schema_version":"1.0","action":"propose","calls":[{"tool":"report_general_concern","arguments":{"observation":"Glass pieces on the floor","location":"near the perfume shelves"}}]}}
+{"event_id":"demo-confirm","transcript":"Yes, save the report.","model_output":{"schema_version":"1.0","action":"confirm","calls":[]}}
+{"event_id":"demo-tasks","transcript":"Show my assigned tasks.","model_output":{"schema_version":"1.0","action":"propose","calls":[{"tool":"task_lookup","arguments":{"operation":"list_assigned_tasks"}}]}}

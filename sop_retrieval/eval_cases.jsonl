@@ -1,0 +1,47 @@
+{"id":"clothing_damage","query":"These hoodies are torn and cannot go to customers.","expected_ids":["SOP-01"]}
+{"id":"shoe_damage","query":"The soles on these shoes are coming apart.","expected_ids":["SOP-01"]}
+{"id":"stock_mismatch","query":"The screen says twelve wallets but I can only count seven in the bin.","expected_ids":["SOP-02"]}
+{"id":"empty_bin","query":"The sneaker bin is empty even though the system says there is stock.","expected_ids":["SOP-02"]}
+{"id":"perfume_leak","query":"North one bottles are leaking into the carton.","expected_ids":["SOP-03"]}
+{"id":"wet_fragrance","query":"There is liquid coming out of a fragrance box.","expected_ids":["SOP-03"]}
+{"id":"glass_floor","query":"A bottle shattered and there are sharp pieces across the walkway.","expected_ids":["SOP-04"]}
+{"id":"unstable_load","query":"The pallet is split and the boxes are leaning towards the aisle.","expected_ids":["SOP-05"]}
+{"id":"crushed_boxes","query":"The cartons on this pallet are crushed.","expected_ids":["SOP-05"]}
+{"id":"unknown_odor","query":"Something smells strange in this aisle and I do not know where it comes from.","expected_ids":["SOP-06"]}
+{"id":"cooling_failure","query":"The cooling has stopped and it is too hot to work here.","expected_ids":["SOP-07"]}
+{"id":"dock_gap","query":"The dock plate is damaged and there is a dangerous gap to the trailer.","expected_ids":["SOP-08"]}
+{"id":"smoke","query":"Smoke is coming out of the equipment by the loading area.","expected_ids":["SOP-09"]}
+{"id":"burning_smell","query":"There is a burning smell near these boxes.","expected_ids":["SOP-09"]}
+{"id":"gas","query":"I smell gas and can hear hissing near the pipe.","expected_ids":["SOP-10"]}
+{"id":"dirty_hands","query":"My hands are dirty after handling damaged cartons. Should I wash them?","expected_ids":["CARE-01"]}
+{"id":"skin_exposure","query":"Perfume spilled over my hands and my skin stings.","expected_ids":["CARE-02"]}
+{"id":"eye_exposure","query":"Fragrance splashed into my eyes.","expected_ids":["CARE-02"]}
+{"id":"cut","query":"I cut my hand on sharp packaging and it is bleeding.","expected_ids":["CARE-03"]}
+{"id":"medical_box","query":"Where can I find the medical box?","expected_ids":["CARE-04"]}
+{"id":"eyewash","query":"Where is the eyewash station?","expected_ids":["CARE-04"]}
+{"id":"coworker_cut","query":"My coworker got cut while handling stock and needs a first-aider.","expected_ids":["HELP-01","CARE-03"]}
+{"id":"emergency_call","query":"How do I call an ambulance from here?","expected_ids":["HELP-02"]}
+{"id":"exit","query":"The evacuation alarm is sounding. Where should we go outside?","expected_ids":["HELP-03"]}
+{"id":"replenish_backpacks","query":"We need another ten backpacks.","expected_ids":["SOP-11"]}
+{"id":"replenish_sneakers","query":"Please request more sneakers for us.","expected_ids":["SOP-11"]}
+{"id":"receiving_checks","query":"What checks do we need before making replacement stock available?","expected_ids":["SOP-11"]}
+{"id":"fever","query":"I feel feverish and do not feel well enough to keep working.","expected_ids":["CARE-05"]}
+{"id":"coworker_cough","query":"My teammate has been coughing a lot today.","expected_ids":["CARE-05"]}
+{"id":"unwell_general","query":"I am feeling sick on the warehouse floor.","expected_ids":["CARE-05"]}
+{"id":"leak_skin","query":"A perfume bottle is leaking and the liquid got on my arm.","expected_ids":["SOP-03","CARE-02"]}
+{"id":"glass_cut","query":"The bottle shattered on the floor and I cut my hand on the glass.","expected_ids":["SOP-04","CARE-03"]}
+{"id":"fumes_cough","query":"There is an odd chemical smell and my teammate started coughing beside it.","expected_ids":["SOP-06","CARE-05"]}
+{"id":"hot_dizzy","query":"The warehouse is too hot and I feel dizzy.","expected_ids":["SOP-07"]}
+{"id":"damage_no_injury","query":"The hoodie is ripped. Nobody is injured and my hands are clean.","expected_ids":["SOP-01"],"notes":"Damage does not establish injury or dirty hands; ranking does not enforce applicability."}
+{"id":"glass_no_injury","query":"There is broken glass on the floor but nobody is cut.","expected_ids":["SOP-04"],"notes":"Do not infer injury from the negated phrase."}
+{"id":"restock_no_hazard","query":"Order more perfume. There is no spill or damage.","expected_ids":["SOP-11"],"notes":"Negated hazards should not become protective advice automatically."}
+{"id":"transcript_restock","query":"need ten more back packs please","expected_ids":["SOP-11"]}
+{"id":"transcript_unwell","query":"my team mate coughing lots feels sick","expected_ids":["CARE-05"]}
+{"id":"negative_inventory","query":"How many sneakers do we have?","expected_ids":[]}
+{"id":"negative_location","query":"Where is North one stored?","expected_ids":[]}
+{"id":"negative_tasks","query":"Show my assigned tasks.","expected_ids":[]}
+{"id":"negative_greeting","query":"Good morning.","expected_ids":[]}
+{"id":"negative_product","query":"What colors does the backpack come in?","expected_ids":[]}
+{"id":"negative_no_hazard","query":"The perfume boxes are fine. There is no leak and no broken glass.","expected_ids":[],"notes":"Embedding ranking alone may still retrieve hazard cards."}
+{"id":"negative_recovery","query":"My teammate is not sick anymore and has stopped coughing.","expected_ids":[],"notes":"No current incident asserted; site return-to-work questions would be a separate case."}
+{"id":"negative_cancel","query":"Cancel the restock request.","expected_ids":[],"notes":"Cancellation must not automatically emit replenishment readiness guidance."}

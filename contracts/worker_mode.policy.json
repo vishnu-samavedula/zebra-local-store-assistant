@@ -1,0 +1,37 @@
+{
+  "profile": "worker-floor-v2",
+  "modes": {
+    "general": {
+      "tools": [
+        "inventory_lookup",
+        "request_replenishment",
+        "task_lookup"
+      ]
+    },
+    "sop": {
+      "tools": [
+        "create_report"
+      ],
+      "guidance_requires_generation": false,
+      "report_requires_explicit_intent": true,
+      "guidance_report_offer": "yes_no_then_preview_then_submit",
+      "accepted_offer_requires_generation": false
+    }
+  },
+  "max_write_questions": 2,
+  "read_questions": false,
+  "model_history": "pending_slots_only",
+  "writes_require_confirmation": true,
+  "task_creation": false,
+  "legacy_report_aliases_for_G_baseline": [
+    "report_general_concern",
+    "report_product_damage"
+  ],
+  "training_targets_use_legacy_aliases": false,
+  "max_named_products_per_read": 2,
+  "multi_product_filters": "product_names_only",
+  "single_product_filters": "only_explicitly_supplied_variant_fields",
+  "max_worker_turns_per_write": 3,
+  "training_excludes_legacy_category_section_bin_reads": true,
+  "model_acceptance": "raw_correct_tool_and_accumulated_grounded_arguments_before_harness_recovery"
+}

@@ -1,0 +1,9 @@
+*.gguf
+*.safetensors
+*.pt
+*.zip
+*.wav
+*.ckpt
+*.nemo
+warehouse-tests/
+lfm25-audio-600m-excavator-v1/

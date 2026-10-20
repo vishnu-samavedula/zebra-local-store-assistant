@@ -1,0 +1,24 @@
+{
+  "model_id": "LiquidAI/LFM2.5-ColBERT-350M",
+  "source_revision": "9772bdf797255d8693b83e84aa98e9b2d36dd0be",
+  "source_weight_sha256": "f492b2f8e8322672d50887a8912b45388bd6d0e7e8f03bdba14be94362daf28b",
+  "source_projection_sha256": "bec41df1bc1fa21cb87487d1c8299ac6c5124b61f71045a47c20bd8ff817cd6d",
+  "gguf_filename": "zebra-colbert-350m-Q8_0.gguf",
+  "gguf_bytes": 378095136,
+  "gguf_sha256": "b01c5a492ef9f0b0994786a223d45cd936e218b8be83e7c1d4e61ce1c8e984f6",
+  "quantization": "Q8_0",
+  "query_vectors": 32,
+  "vector_dimensions": 128,
+  "query_prefix": "[Q] ",
+  "query_padding_token": 7,
+  "device_runtime": "llama.cpp b11565 CPU, embedding mode, pooling none",
+  "document_index_sha256": "d336ab48dc50859e55768d58621e538d79766c1ae000ede7e78c38a9e55ba249",
+  "candidate_recall_review": {
+    "all_required_in_top3": 38,
+    "positive_cases": 39,
+    "negative_cases": 8,
+    "negative_abstention_not_measured": true,
+    "median_query_search_ms_via_adb": 102.923
+  },
+  "trained_during_port": false
+}

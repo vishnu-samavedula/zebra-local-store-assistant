@@ -1,0 +1,5 @@
+/generated/
+/models/
+/.venv/
+/.venv-colbert/
+__pycache__/

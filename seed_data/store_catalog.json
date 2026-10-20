@@ -1,0 +1,1583 @@
+{
+  "schema_version": "1.0",
+  "catalog_id": "northstar-us",
+  "currency": "USD",
+  "products": [
+    {
+      "id": "cloud-hoodie",
+      "brand": "Northstar",
+      "title": "Cloudweight Hoodie",
+      "category": "Hoodies",
+      "price": 78,
+      "description": "Soft brushed fleece with an easy, structured fit.",
+      "about": [
+        "Organic cotton-rich brushed interior",
+        "Ribbed cuffs and hem",
+        "Pullover construction with kangaroo pocket"
+      ],
+      "material": "Organic cotton fleece",
+      "colors": [
+        "Ink",
+        "Cobalt",
+        "Stone"
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "attributes": {
+        "fit": "regular",
+        "fabric_weight_gsm": 320,
+        "closure": "pullover",
+        "pockets": 1,
+        "care": "machine wash cold"
+      },
+      "image": "/catalog/products/cloud-hoodie.jpg",
+      "section": "A1"
+    },
+    {
+      "id": "studio-hoodie",
+      "brand": "Northstar",
+      "title": "Studio Zip Hoodie",
+      "category": "Hoodies",
+      "price": 88,
+      "description": "A clean full-zip layer with a hidden phone pocket.",
+      "about": [
+        "Full-length two-way zipper",
+        "Hidden interior phone pocket",
+        "Smooth face with a lightly brushed interior"
+      ],
+      "material": "Cotton-polyester blend",
+      "colors": [
+        "Black",
+        "Ash"
+      ],
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "attributes": {
+        "fit": "regular",
+        "fabric_weight_gsm": 285,
+        "closure": "full zip",
+        "pockets": 3,
+        "care": "machine wash cold"
+      },
+      "image": "/catalog/products/studio-hoodie.jpg",
+      "section": "A2"
+    },
+    {
+      "id": "weekend-hoodie",
+      "brand": "Northstar",
+      "title": "Weekend Loop Hoodie",
+      "category": "Hoodies",
+      "price": 72,
+      "description": "Breathable loopback cotton for changing weather.",
+      "about": [
+        "Unbrushed loopback interior",
+        "Drawcord hood",
+        "Designed as a midweight layer"
+      ],
+      "material": "Loopback cotton",
+      "colors": [
+        "Navy",
+        "Oat"
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L"
+      ],
+      "attributes": {
+        "fit": "relaxed",
+        "fabric_weight_gsm": 260,
+        "closure": "pullover",
+        "pockets": 1,
+        "care": "machine wash cold"
+      },
+      "image": "/catalog/products/weekend-hoodie.jpg",
+      "section": "A3"
+    },
+    {
+      "id": "meridian-merino-hoodie",
+      "brand": "Northstar",
+      "title": "Meridian Merino Hoodie",
+      "category": "Hoodies",
+      "price": 138,
+      "description": "Fine merino layer with a low-profile hood and clean finish.",
+      "about": [
+        "Fine-gauge merino knit",
+        "Flat seams reduce bulk",
+        "Two concealed side pockets"
+      ],
+      "material": "Merino wool-nylon blend",
+      "colors": [
+        "Charcoal",
+        "Deep Navy"
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "attributes": {
+        "fit": "slim",
+        "fabric_weight_gsm": 210,
+        "closure": "pullover",
+        "pockets": 2,
+        "care": "hand wash cold"
+      },
+      "image": null,
+      "section": "A4"
+    },
+    {
+      "id": "harbor-heavy-hoodie",
+      "brand": "Northstar",
+      "title": "Harbor Heavy Hoodie",
+      "category": "Hoodies",
+      "price": 96,
+      "description": "Dense garment-dyed fleece with a roomy silhouette.",
+      "about": [
+        "Heavyweight brushed fleece",
+        "Double-layer hood",
+        "Garment dyed for tonal variation"
+      ],
+      "material": "Cotton fleece",
+      "colors": [
+        "Washed Black",
+        "Clay",
+        "Forest"
+      ],
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "attributes": {
+        "fit": "oversized",
+        "fabric_weight_gsm": 460,
+        "closure": "pullover",
+        "pockets": 1,
+        "care": "machine wash cold"
+      },
+      "image": null,
+      "section": "A5"
+    },
+    {
+      "id": "motion-tech-hoodie",
+      "brand": "Northstar",
+      "title": "Motion Tech Hoodie",
+      "category": "Hoodies",
+      "price": 108,
+      "description": "Stretch performance layer with a close-fitting hood.",
+      "about": [
+        "Four-way stretch fabric",
+        "Zippered hand pockets",
+        "Thumbholes at cuffs"
+      ],
+      "material": "Recycled nylon-elastane knit",
+      "colors": [
+        "Graphite",
+        "Deep Blue"
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "attributes": {
+        "fit": "athletic",
+        "fabric_weight_gsm": 235,
+        "closure": "full zip",
+        "pockets": 2,
+        "care": "machine wash cold"
+      },
+      "image": null,
+      "section": "A6"
+    },
+    {
+      "id": "essential-tee",
+      "brand": "Northstar",
+      "title": "Essential Heavy Tee",
+      "category": "T-Shirts",
+      "price": 34,
+      "description": "Substantial cotton tee that holds its shape.",
+      "about": [
+        "Dense cotton jersey",
+        "Bound crew neckline",
+        "Straight hem"
+      ],
+      "material": "240 gsm cotton jersey",
+      "colors": [
+        "White",
+        "Black",
+        "Cobalt"
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "attributes": {
+        "fit": "regular",
+        "fabric_weight_gsm": 240,
+        "neckline": "crew",
+        "sleeve": "short",
+        "care": "machine wash cold"
+      },
+      "image": "/catalog/products/essential-tee.jpg",
+      "section": "B1"
+    },
+    {
+      "id": "air-tee",
+      "brand": "Northstar",
+      "title": "Air Knit Tee",
+      "category": "T-Shirts",
+      "price": 38,
+      "description": "Light, quick-drying knit for warm commutes.",
+      "about": [
+        "Open-knit ventilation zones",
+        "Quick-drying fibers",
+        "Reflective mark at back neck"
+      ],
+      "material": "Recycled polyester performance knit",
+      "colors": [
+        "White",
+        "Graphite"
+      ],
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "attributes": {
+        "fit": "athletic",
+        "fabric_weight_gsm": 135,
+        "neckline": "crew",
+        "sleeve": "short",
+        "care": "machine wash cold"
+      },
+      "image": "/catalog/products/air-tee.jpg",
+      "section": "B2"
+    },
+    {
+      "id": "box-tee",
+      "brand": "Northstar",
+      "title": "Box Cut Tee",
+      "category": "T-Shirts",
+      "price": 36,
+      "description": "Relaxed proportions with a crisp neckline.",
+      "about": [
+        "Dropped shoulder construction",
+        "Combed cotton surface",
+        "Reinforced neckline"
+      ],
+      "material": "Combed cotton",
+      "colors": [
+        "Bone",
+        "Ink",
+        "Blue"
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L"
+      ],
+      "attributes": {
+        "fit": "boxy",
+        "fabric_weight_gsm": 220,
+        "neckline": "crew",
+        "sleeve": "short",
+        "care": "machine wash cold"
+      },
+      "image": "/catalog/products/box-tee.jpg",
+      "section": "B3"
+    },
+    {
+      "id": "field-pocket-tee",
+      "brand": "Northstar",
+      "title": "Field Pocket Tee",
+      "category": "T-Shirts",
+      "price": 42,
+      "description": "Midweight cotton tee with a reinforced chest pocket.",
+      "about": [
+        "Bar-tacked chest pocket",
+        "Side-seam construction",
+        "Prewashed for reduced shrinkage"
+      ],
+      "material": "Cotton jersey",
+      "colors": [
+        "White",
+        "Olive",
+        "Navy"
+      ],
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "attributes": {
+        "fit": "regular",
+        "fabric_weight_gsm": 190,
+        "neckline": "crew",
+        "sleeve": "short",
+        "care": "machine wash warm"
+      },
+      "image": null,
+      "section": "B4"
+    },
+    {
+      "id": "meridian-merino-tee",
+      "brand": "Northstar",
+      "title": "Meridian Merino Tee",
+      "category": "T-Shirts",
+      "price": 64,
+      "description": "Fine merino-blend tee designed for repeat wear.",
+      "about": [
+        "Fine-gauge merino blend",
+        "Flatlock shoulder seams",
+        "Naturally soft hand feel"
+      ],
+      "material": "Merino wool-Tencel blend",
+      "colors": [
+        "Charcoal",
+        "Navy",
+        "Sand"
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "attributes": {
+        "fit": "slim",
+        "fabric_weight_gsm": 155,
+        "neckline": "crew",
+        "sleeve": "short",
+        "care": "machine wash gentle"
+      },
+      "image": null,
+      "section": "B5"
+    },
+    {
+      "id": "coast-linen-tee",
+      "brand": "Northstar",
+      "title": "Coast Linen Tee",
+      "category": "T-Shirts",
+      "price": 48,
+      "description": "Airy linen-cotton jersey with a softly textured finish.",
+      "about": [
+        "Linen-cotton blended jersey",
+        "Taped shoulder seams",
+        "Naturally varied surface texture"
+      ],
+      "material": "Linen-cotton blend",
+      "colors": [
+        "Natural",
+        "Sea Blue",
+        "Black"
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "attributes": {
+        "fit": "relaxed",
+        "fabric_weight_gsm": 145,
+        "neckline": "crew",
+        "sleeve": "short",
+        "care": "machine wash gentle"
+      },
+      "image": null,
+      "section": "B6"
+    },
+    {
+      "id": "pace-runner",
+      "brand": "Northstar",
+      "title": "Pace Runner",
+      "category": "Sneakers",
+      "price": 118,
+      "description": "Cushioned daily trainer built for walks and easy miles.",
+      "about": [
+        "Responsive foam midsole",
+        "Engineered mesh upper",
+        "Segmented rubber outsole"
+      ],
+      "material": "Engineered mesh and rubber",
+      "colors": [
+        "White / Blue",
+        "Graphite"
+      ],
+      "sizes": [
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11",
+        "12"
+      ],
+      "attributes": {
+        "closure": "lace",
+        "weight_oz": 9.4,
+        "heel_drop_mm": 8,
+        "upper": "engineered mesh",
+        "outsole": "rubber",
+        "water_protection": "none"
+      },
+      "image": "/catalog/products/pace-runner.jpg",
+      "section": "C1"
+    },
+    {
+      "id": "court-low",
+      "brand": "Northstar",
+      "title": "Court Low",
+      "category": "Sneakers",
+      "price": 104,
+      "description": "Minimal leather sneaker with a supportive cupsole.",
+      "about": [
+        "Leather upper",
+        "Padded collar",
+        "Stitched rubber cupsole"
+      ],
+      "material": "Leather and rubber",
+      "colors": [
+        "Triple Black",
+        "White"
+      ],
+      "sizes": [
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11"
+      ],
+      "attributes": {
+        "closure": "lace",
+        "weight_oz": 12.8,
+        "heel_drop_mm": 0,
+        "upper": "leather",
+        "outsole": "rubber cupsole",
+        "water_protection": "none"
+      },
+      "image": "/catalog/products/court-low.jpg",
+      "section": "C2"
+    },
+    {
+      "id": "trail-grid",
+      "brand": "Northstar",
+      "title": "Trail Grid",
+      "category": "Sneakers",
+      "price": 132,
+      "description": "Grippy all-terrain sneaker with water-resistant panels.",
+      "about": [
+        "Multi-directional outsole lugs",
+        "Reinforced toe cap",
+        "Water-resistant ripstop panels"
+      ],
+      "material": "Ripstop textile and trail rubber",
+      "colors": [
+        "Slate",
+        "Moss"
+      ],
+      "sizes": [
+        "7",
+        "8",
+        "9",
+        "10",
+        "11",
+        "12"
+      ],
+      "attributes": {
+        "closure": "lace",
+        "weight_oz": 11.7,
+        "heel_drop_mm": 6,
+        "upper": "ripstop textile",
+        "outsole": "lugged rubber",
+        "water_protection": "water resistant"
+      },
+      "image": "/catalog/products/trail-grid.jpg",
+      "section": "C3"
+    },
+    {
+      "id": "commute-knit",
+      "brand": "Northstar",
+      "title": "Commute Knit",
+      "category": "Sneakers",
+      "price": 98,
+      "description": "Slip-on comfort for long days on your feet.",
+      "about": [
+        "Stretch knit upper",
+        "Pull tabs at heel and tongue",
+        "Wide foam contact platform"
+      ],
+      "material": "Stretch knit and EVA",
+      "colors": [
+        "Black",
+        "Fog"
+      ],
+      "sizes": [
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11"
+      ],
+      "attributes": {
+        "closure": "slip on",
+        "weight_oz": 8.9,
+        "heel_drop_mm": 6,
+        "upper": "stretch knit",
+        "outsole": "EVA with rubber pods",
+        "water_protection": "none"
+      },
+      "image": "/catalog/products/commute-knit.jpg",
+      "section": "C4"
+    },
+    {
+      "id": "metro-shield",
+      "brand": "Northstar",
+      "title": "Metro Shield Sneaker",
+      "category": "Sneakers",
+      "price": 146,
+      "description": "Low-profile commuter sneaker with a waterproof membrane.",
+      "about": [
+        "Seam-sealed waterproof liner",
+        "Reflective heel detail",
+        "Cushioned removable insole"
+      ],
+      "material": "Coated textile and rubber",
+      "colors": [
+        "Black",
+        "Storm"
+      ],
+      "sizes": [
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11",
+        "12"
+      ],
+      "attributes": {
+        "closure": "lace",
+        "weight_oz": 11.2,
+        "heel_drop_mm": 7,
+        "upper": "coated textile",
+        "outsole": "rubber",
+        "water_protection": "waterproof"
+      },
+      "image": null,
+      "section": "C5"
+    },
+    {
+      "id": "archive-suede",
+      "brand": "Northstar",
+      "title": "Archive Suede Trainer",
+      "category": "Sneakers",
+      "price": 112,
+      "description": "Retro low-profile trainer made with suede and nylon.",
+      "about": [
+        "Suede overlays",
+        "Nylon underlays",
+        "Die-cut EVA midsole"
+      ],
+      "material": "Suede, nylon and rubber",
+      "colors": [
+        "Sand / Navy",
+        "Burgundy / Gum"
+      ],
+      "sizes": [
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11",
+        "12"
+      ],
+      "attributes": {
+        "closure": "lace",
+        "weight_oz": 10.6,
+        "heel_drop_mm": 4,
+        "upper": "suede and nylon",
+        "outsole": "gum rubber",
+        "water_protection": "none"
+      },
+      "image": null,
+      "section": "C6"
+    },
+    {
+      "id": "canvas-court",
+      "brand": "Northstar",
+      "title": "Canvas Court",
+      "category": "Sneakers",
+      "price": 76,
+      "description": "Unstructured canvas sneaker with a vulcanized sole.",
+      "about": [
+        "Cotton canvas upper",
+        "Metal ventilation eyelets",
+        "Vulcanized rubber construction"
+      ],
+      "material": "Cotton canvas and rubber",
+      "colors": [
+        "Natural",
+        "Black",
+        "Cobalt"
+      ],
+      "sizes": [
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11",
+        "12"
+      ],
+      "attributes": {
+        "closure": "lace",
+        "weight_oz": 10.1,
+        "heel_drop_mm": 0,
+        "upper": "cotton canvas",
+        "outsole": "vulcanized rubber",
+        "water_protection": "none"
+      },
+      "image": null,
+      "section": "C7"
+    },
+    {
+      "id": "balance-walk",
+      "brand": "Northstar",
+      "title": "Balance Walk",
+      "category": "Sneakers",
+      "price": 124,
+      "description": "Stable walking shoe with a broad base and structured heel.",
+      "about": [
+        "Broad ground-contact platform",
+        "Firm medial support",
+        "Padded engineered-mesh upper"
+      ],
+      "material": "Engineered mesh and rubber",
+      "colors": [
+        "White / Grey",
+        "Black"
+      ],
+      "sizes": [
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11",
+        "12",
+        "13"
+      ],
+      "attributes": {
+        "closure": "lace",
+        "weight_oz": 10.8,
+        "heel_drop_mm": 10,
+        "upper": "engineered mesh",
+        "outsole": "high-abrasion rubber",
+        "water_protection": "none"
+      },
+      "image": null,
+      "section": "C8"
+    },
+    {
+      "id": "pool-slide",
+      "brand": "Northstar",
+      "title": "Form Pool Slide",
+      "category": "Slides",
+      "price": 42,
+      "description": "One-piece waterproof slide with a contoured footbed.",
+      "about": [
+        "Single-piece molded construction",
+        "Contoured footbed",
+        "Textured wet-surface outsole"
+      ],
+      "material": "Molded EVA",
+      "colors": [
+        "Black",
+        "Cobalt",
+        "Chalk"
+      ],
+      "sizes": [
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11",
+        "12"
+      ],
+      "attributes": {
+        "closure": "open",
+        "weight_oz": 5.8,
+        "footbed": "contoured EVA",
+        "outsole": "textured EVA",
+        "water_protection": "waterproof"
+      },
+      "image": "/catalog/products/pool-slide.jpg",
+      "section": "D1"
+    },
+    {
+      "id": "recovery-slide",
+      "brand": "Northstar",
+      "title": "Recovery Slide",
+      "category": "Slides",
+      "price": 52,
+      "description": "Extra-soft platform that helps tired feet reset.",
+      "about": [
+        "Dual-density foam construction",
+        "Deep heel cup",
+        "Rockered platform"
+      ],
+      "material": "Dual-density foam",
+      "colors": [
+        "Graphite",
+        "Cloud"
+      ],
+      "sizes": [
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11"
+      ],
+      "attributes": {
+        "closure": "open",
+        "weight_oz": 7.2,
+        "footbed": "soft foam",
+        "outsole": "high-density foam",
+        "water_protection": "water resistant"
+      },
+      "image": "/catalog/products/recovery-slide.jpg",
+      "section": "D2"
+    },
+    {
+      "id": "route-adjust-slide",
+      "brand": "Northstar",
+      "title": "Route Adjust Slide",
+      "category": "Slides",
+      "price": 58,
+      "description": "Adjustable sport slide with a lined strap and rubber outsole.",
+      "about": [
+        "Hook-and-loop adjustable strap",
+        "Jersey-lined upper",
+        "Rubber traction pods"
+      ],
+      "material": "Synthetic textile, EVA and rubber",
+      "colors": [
+        "Black",
+        "Olive"
+      ],
+      "sizes": [
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11",
+        "12"
+      ],
+      "attributes": {
+        "closure": "adjustable strap",
+        "weight_oz": 7.8,
+        "footbed": "molded EVA",
+        "outsole": "EVA with rubber pods",
+        "water_protection": "water resistant"
+      },
+      "image": null,
+      "section": "D3"
+    },
+    {
+      "id": "city-leather-slide",
+      "brand": "Northstar",
+      "title": "City Leather Slide",
+      "category": "Slides",
+      "price": 84,
+      "description": "Minimal leather slide built on a cushioned everyday footbed.",
+      "about": [
+        "Wide leather strap",
+        "Leather-lined footbed",
+        "Low-profile rubber outsole"
+      ],
+      "material": "Leather and rubber",
+      "colors": [
+        "Black",
+        "Tan"
+      ],
+      "sizes": [
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11"
+      ],
+      "attributes": {
+        "closure": "open",
+        "weight_oz": 8.4,
+        "footbed": "leather-lined foam",
+        "outsole": "rubber",
+        "water_protection": "none"
+      },
+      "image": null,
+      "section": "D4"
+    },
+    {
+      "id": "crew-sock",
+      "brand": "Northstar",
+      "title": "Daily Crew 3-Pack",
+      "category": "Socks",
+      "price": 24,
+      "description": "Cushioned crew socks with a stay-put rib.",
+      "about": [
+        "Three pairs per pack",
+        "Cushioned heel and toe",
+        "Ribbed stay-put cuff"
+      ],
+      "material": "Cotton blend",
+      "colors": [
+        "White",
+        "Black",
+        "Mixed"
+      ],
+      "sizes": [
+        "S/M",
+        "L/XL"
+      ],
+      "attributes": {
+        "height": "crew",
+        "cushioning": "medium",
+        "pack_count": 3,
+        "compression": "none",
+        "care": "machine wash warm"
+      },
+      "image": "/catalog/products/crew-sock.jpg",
+      "section": "E1"
+    },
+    {
+      "id": "run-sock",
+      "brand": "Northstar",
+      "title": "Motion Sock 2-Pack",
+      "category": "Socks",
+      "price": 22,
+      "description": "Breathable performance socks with arch support.",
+      "about": [
+        "Two pairs per pack",
+        "Mesh ventilation zones",
+        "Elastic arch band"
+      ],
+      "material": "Recycled nylon blend",
+      "colors": [
+        "White",
+        "Graphite"
+      ],
+      "sizes": [
+        "S/M",
+        "L/XL"
+      ],
+      "attributes": {
+        "height": "ankle",
+        "cushioning": "light",
+        "pack_count": 2,
+        "compression": "arch support",
+        "care": "machine wash cold"
+      },
+      "image": "/catalog/products/run-sock.jpg",
+      "section": "E2"
+    },
+    {
+      "id": "merino-sock",
+      "brand": "Northstar",
+      "title": "Merino Trail Sock",
+      "category": "Socks",
+      "price": 18,
+      "description": "Temperature-regulating comfort without bulk.",
+      "about": [
+        "Merino-rich yarn blend",
+        "Targeted heel and toe cushioning",
+        "Flat toe seam"
+      ],
+      "material": "Merino wool blend",
+      "colors": [
+        "Charcoal",
+        "Navy"
+      ],
+      "sizes": [
+        "S/M",
+        "L/XL"
+      ],
+      "attributes": {
+        "height": "crew",
+        "cushioning": "medium",
+        "pack_count": 1,
+        "compression": "light arch support",
+        "care": "machine wash gentle"
+      },
+      "image": "/catalog/products/merino-sock.jpg",
+      "section": "E3"
+    },
+    {
+      "id": "invisible-sock",
+      "brand": "Northstar",
+      "title": "Invisible Sock 3-Pack",
+      "category": "Socks",
+      "price": 20,
+      "description": "Low-cut liner socks with silicone heel grips.",
+      "about": [
+        "Three pairs per pack",
+        "Silicone heel grip",
+        "Low-profile opening"
+      ],
+      "material": "Cotton-nylon blend",
+      "colors": [
+        "White",
+        "Black",
+        "Sand"
+      ],
+      "sizes": [
+        "S/M",
+        "L/XL"
+      ],
+      "attributes": {
+        "height": "no show",
+        "cushioning": "light",
+        "pack_count": 3,
+        "compression": "none",
+        "care": "machine wash cold"
+      },
+      "image": null,
+      "section": "E4"
+    },
+    {
+      "id": "dress-merino-sock",
+      "brand": "Northstar",
+      "title": "Fine Merino Dress Sock 2-Pack",
+      "category": "Socks",
+      "price": 28,
+      "description": "Fine-gauge merino socks with a smooth dress-shoe fit.",
+      "about": [
+        "Two pairs per pack",
+        "Fine-gauge merino knit",
+        "Reinforced heel and toe"
+      ],
+      "material": "Merino wool-nylon blend",
+      "colors": [
+        "Black",
+        "Navy",
+        "Charcoal"
+      ],
+      "sizes": [
+        "S/M",
+        "L/XL"
+      ],
+      "attributes": {
+        "height": "over calf",
+        "cushioning": "none",
+        "pack_count": 2,
+        "compression": "light cuff",
+        "care": "machine wash gentle"
+      },
+      "image": null,
+      "section": "E5"
+    },
+    {
+      "id": "daypack-18",
+      "brand": "Northstar",
+      "title": "Daypack 18L",
+      "category": "Backpacks",
+      "price": 92,
+      "description": "A compact everyday pack with padded laptop storage.",
+      "about": [
+        "Padded laptop sleeve",
+        "Quick-access top pocket",
+        "Two exterior bottle pockets"
+      ],
+      "material": "Recycled ballistic nylon",
+      "colors": [
+        "Black",
+        "Cobalt"
+      ],
+      "sizes": [
+        "18L"
+      ],
+      "attributes": {
+        "capacity_l": 18,
+        "weight_lb": 1.6,
+        "laptop_max_in": 15,
+        "opening": "panel",
+        "water_protection": "water resistant",
+        "dimensions_in": "17 x 11 x 6"
+      },
+      "image": "/catalog/products/daypack-18.jpg",
+      "section": "F1"
+    },
+    {
+      "id": "weekender-28",
+      "brand": "Northstar",
+      "title": "Weekender 28L",
+      "category": "Backpacks",
+      "price": 128,
+      "description": "Clamshell packing and room for a two-night trip.",
+      "about": [
+        "Full clamshell opening",
+        "Padded laptop compartment",
+        "Stowable shoulder straps"
+      ],
+      "material": "Recycled ripstop",
+      "colors": [
+        "Black",
+        "Slate"
+      ],
+      "sizes": [
+        "28L"
+      ],
+      "attributes": {
+        "capacity_l": 28,
+        "weight_lb": 2.3,
+        "laptop_max_in": 16,
+        "opening": "clamshell",
+        "water_protection": "water resistant",
+        "dimensions_in": "19 x 12 x 7"
+      },
+      "image": "/catalog/products/weekender-28.jpg",
+      "section": "F2"
+    },
+    {
+      "id": "trail-pack",
+      "brand": "Northstar",
+      "title": "Trail Pack 22L",
+      "category": "Backpacks",
+      "price": 116,
+      "description": "Ventilated back panel and hydration-compatible storage.",
+      "about": [
+        "Suspended mesh back panel",
+        "Hydration reservoir sleeve",
+        "Removable webbing hip belt"
+      ],
+      "material": "Water-resistant ripstop",
+      "colors": [
+        "Graphite",
+        "Blue"
+      ],
+      "sizes": [
+        "22L"
+      ],
+      "attributes": {
+        "capacity_l": 22,
+        "weight_lb": 1.8,
+        "laptop_max_in": 0,
+        "opening": "top zip",
+        "water_protection": "water resistant",
+        "dimensions_in": "20 x 11 x 8"
+      },
+      "image": "/catalog/products/trail-pack.jpg",
+      "section": "F3"
+    },
+    {
+      "id": "metro-rolltop-24",
+      "brand": "Northstar",
+      "title": "Metro Rolltop 24L",
+      "category": "Backpacks",
+      "price": 142,
+      "description": "Weatherproof rolltop pack with welded exterior seams.",
+      "about": [
+        "Rolltop closure with side access",
+        "Suspended laptop sleeve",
+        "Welded exterior seams"
+      ],
+      "material": "Coated recycled nylon",
+      "colors": [
+        "Black",
+        "Mineral"
+      ],
+      "sizes": [
+        "24L"
+      ],
+      "attributes": {
+        "capacity_l": 24,
+        "weight_lb": 2.1,
+        "laptop_max_in": 16,
+        "opening": "rolltop",
+        "water_protection": "weatherproof",
+        "dimensions_in": "20 x 12 x 7"
+      },
+      "image": null,
+      "section": "F4"
+    },
+    {
+      "id": "office-pack-20",
+      "brand": "Northstar",
+      "title": "Office Pack 20L",
+      "category": "Backpacks",
+      "price": 118,
+      "description": "Structured work pack with separate device and document storage.",
+      "about": [
+        "Separate laptop compartment",
+        "Internal document divider",
+        "Luggage-handle pass-through"
+      ],
+      "material": "Recycled polyester twill",
+      "colors": [
+        "Black",
+        "Navy"
+      ],
+      "sizes": [
+        "20L"
+      ],
+      "attributes": {
+        "capacity_l": 20,
+        "weight_lb": 2,
+        "laptop_max_in": 16,
+        "opening": "panel",
+        "water_protection": "water resistant",
+        "dimensions_in": "18 x 12 x 6"
+      },
+      "image": null,
+      "section": "F5"
+    },
+    {
+      "id": "foldaway-pack-16",
+      "brand": "Northstar",
+      "title": "Foldaway Pack 16L",
+      "category": "Backpacks",
+      "price": 54,
+      "description": "Light unstructured daypack that packs into its own pocket.",
+      "about": [
+        "Packs into interior pocket",
+        "Two stretch bottle pockets",
+        "Unpadded shoulder straps"
+      ],
+      "material": "Lightweight recycled ripstop",
+      "colors": [
+        "Black",
+        "Orange",
+        "Blue"
+      ],
+      "sizes": [
+        "16L"
+      ],
+      "attributes": {
+        "capacity_l": 16,
+        "weight_lb": 0.6,
+        "laptop_max_in": 0,
+        "opening": "top zip",
+        "water_protection": "water resistant",
+        "dimensions_in": "17 x 10 x 6"
+      },
+      "image": null,
+      "section": "F6"
+    },
+    {
+      "id": "camera-pack-20",
+      "brand": "Northstar",
+      "title": "Frame Camera Pack 20L",
+      "category": "Backpacks",
+      "price": 168,
+      "description": "Padded camera pack with configurable dividers and side access.",
+      "about": [
+        "Removable padded divider system",
+        "Side camera access",
+        "Tripod attachment straps"
+      ],
+      "material": "Coated nylon",
+      "colors": [
+        "Black",
+        "Olive"
+      ],
+      "sizes": [
+        "20L"
+      ],
+      "attributes": {
+        "capacity_l": 20,
+        "weight_lb": 2.8,
+        "laptop_max_in": 15,
+        "opening": "panel and side",
+        "water_protection": "water resistant",
+        "dimensions_in": "18 x 12 x 7"
+      },
+      "image": null,
+      "section": "F7"
+    },
+    {
+      "id": "card-fold",
+      "brand": "Northstar",
+      "title": "Card Fold Wallet",
+      "category": "Wallets",
+      "price": 46,
+      "description": "Slim six-card wallet with a center cash slot.",
+      "about": [
+        "Six card slots",
+        "Center folded-cash compartment",
+        "Painted edges"
+      ],
+      "material": "Full-grain leather",
+      "colors": [
+        "Cobalt",
+        "Black",
+        "Tan"
+      ],
+      "sizes": [
+        "One size"
+      ],
+      "attributes": {
+        "card_capacity": 6,
+        "coin_storage": false,
+        "closure": "none",
+        "rfid": false,
+        "dimensions_in": "4 x 3 x 0.3"
+      },
+      "image": "/catalog/products/card-fold.jpg",
+      "section": "G1"
+    },
+    {
+      "id": "zip-wallet",
+      "brand": "Northstar",
+      "title": "Zip Wallet",
+      "category": "Wallets",
+      "price": 58,
+      "description": "Compact zip-around wallet for cards, cash, and coins.",
+      "about": [
+        "Three-sided zipper",
+        "Interior coin pocket",
+        "Four card slots"
+      ],
+      "material": "Pebbled leather",
+      "colors": [
+        "Black",
+        "Stone"
+      ],
+      "sizes": [
+        "One size"
+      ],
+      "attributes": {
+        "card_capacity": 4,
+        "coin_storage": true,
+        "closure": "zip",
+        "rfid": false,
+        "dimensions_in": "4.5 x 3.5 x 0.7"
+      },
+      "image": "/catalog/products/zip-wallet.jpg",
+      "section": "G2"
+    },
+    {
+      "id": "transit-wallet",
+      "brand": "Northstar",
+      "title": "Transit Wallet",
+      "category": "Wallets",
+      "price": 32,
+      "description": "Durable everyday wallet with a quick-access card slot.",
+      "about": [
+        "Exterior quick-access slot",
+        "Interior cash sleeve",
+        "Recycled technical fabric shell"
+      ],
+      "material": "Recycled technical fabric",
+      "colors": [
+        "Black",
+        "Navy"
+      ],
+      "sizes": [
+        "One size"
+      ],
+      "attributes": {
+        "card_capacity": 7,
+        "coin_storage": false,
+        "closure": "fold",
+        "rfid": false,
+        "dimensions_in": "4.1 x 3.2 x 0.4"
+      },
+      "image": "/catalog/products/transit-wallet.jpg",
+      "section": "G3"
+    },
+    {
+      "id": "heritage-bifold",
+      "brand": "Northstar",
+      "title": "Heritage Bifold",
+      "category": "Wallets",
+      "price": 68,
+      "description": "Traditional leather bifold with divided bill storage.",
+      "about": [
+        "Eight card slots",
+        "Two-section bill compartment",
+        "Leather-lined interior"
+      ],
+      "material": "Vegetable-tanned leather",
+      "colors": [
+        "Brown",
+        "Black"
+      ],
+      "sizes": [
+        "One size"
+      ],
+      "attributes": {
+        "card_capacity": 8,
+        "coin_storage": false,
+        "closure": "fold",
+        "rfid": false,
+        "dimensions_in": "4.4 x 3.6 x 0.6"
+      },
+      "image": null,
+      "section": "G4"
+    },
+    {
+      "id": "passport-organizer",
+      "brand": "Northstar",
+      "title": "Passport Organizer",
+      "category": "Wallets",
+      "price": 74,
+      "description": "Travel organizer for a passport, cards, documents, and currency.",
+      "about": [
+        "Passport sleeve",
+        "Zippered currency compartment",
+        "Boarding-pass pocket"
+      ],
+      "material": "Coated recycled nylon",
+      "colors": [
+        "Black",
+        "Clay"
+      ],
+      "sizes": [
+        "One size"
+      ],
+      "attributes": {
+        "card_capacity": 6,
+        "coin_storage": true,
+        "closure": "zip",
+        "rfid": true,
+        "dimensions_in": "6 x 4.5 x 0.8"
+      },
+      "image": null,
+      "section": "G5"
+    },
+    {
+      "id": "clip-card-case",
+      "brand": "Northstar",
+      "title": "Clip Card Case",
+      "category": "Wallets",
+      "price": 38,
+      "description": "Compact card case with a spring-steel cash clip.",
+      "about": [
+        "Four card slots",
+        "Spring-steel money clip",
+        "Leather pull tab"
+      ],
+      "material": "Leather and stainless steel",
+      "colors": [
+        "Black",
+        "Tan",
+        "Navy"
+      ],
+      "sizes": [
+        "One size"
+      ],
+      "attributes": {
+        "card_capacity": 4,
+        "coin_storage": false,
+        "closure": "none",
+        "rfid": false,
+        "dimensions_in": "4 x 2.8 x 0.4"
+      },
+      "image": null,
+      "section": "G6"
+    },
+    {
+      "id": "north-01",
+      "brand": "Northstar",
+      "title": "North one",
+      "category": "Fragrance",
+      "price": 68,
+      "description": "Crisp cedar, mineral air, and soft white musk.",
+      "about": [
+        "Cedar and mineral opening",
+        "White-musk drydown",
+        "Eau de parfum concentration"
+      ],
+      "material": "50 ml eau de parfum",
+      "colors": [],
+      "sizes": [
+        "50 ml"
+      ],
+      "attributes": {
+        "concentration": "eau de parfum",
+        "volume_ml": 50,
+        "family": "woody fresh",
+        "top_notes": "mineral air",
+        "heart_notes": "cedar",
+        "base_notes": "white musk"
+      },
+      "image": "/catalog/products/north-01.jpg",
+      "section": "H1"
+    },
+    {
+      "id": "after-rain",
+      "brand": "Northstar",
+      "title": "After Rain",
+      "category": "Fragrance",
+      "price": 72,
+      "description": "Wet stone, violet leaf, and grounded vetiver.",
+      "about": [
+        "Green violet-leaf opening",
+        "Mineral wet-stone accord",
+        "Vetiver base"
+      ],
+      "material": "50 ml eau de parfum",
+      "colors": [],
+      "sizes": [
+        "50 ml"
+      ],
+      "attributes": {
+        "concentration": "eau de parfum",
+        "volume_ml": 50,
+        "family": "green earthy",
+        "top_notes": "violet leaf",
+        "heart_notes": "wet stone accord",
+        "base_notes": "vetiver"
+      },
+      "image": "/catalog/products/after-rain.jpg",
+      "section": "H2"
+    },
+    {
+      "id": "soft-hours",
+      "brand": "Northstar",
+      "title": "Soft Hours",
+      "category": "Fragrance",
+      "price": 72,
+      "description": "Warm amber, skin musk, and a trace of vanilla.",
+      "about": [
+        "Soft amber opening",
+        "Skin-musk heart",
+        "Light vanilla finish"
+      ],
+      "material": "50 ml eau de parfum",
+      "colors": [],
+      "sizes": [
+        "50 ml"
+      ],
+      "attributes": {
+        "concentration": "eau de parfum",
+        "volume_ml": 50,
+        "family": "warm amber",
+        "top_notes": "soft amber",
+        "heart_notes": "skin musk",
+        "base_notes": "vanilla"
+      },
+      "image": "/catalog/products/soft-hours.jpg",
+      "section": "H3"
+    },
+    {
+      "id": "citrus-line",
+      "brand": "Northstar",
+      "title": "Citrus fresh",
+      "category": "Fragrance",
+      "price": 66,
+      "description": "Bergamot peel, neroli, and dry cedarwood.",
+      "about": [
+        "Bright bergamot opening",
+        "Neroli heart",
+        "Dry cedarwood base"
+      ],
+      "material": "50 ml eau de parfum",
+      "colors": [],
+      "sizes": [
+        "50 ml"
+      ],
+      "attributes": {
+        "concentration": "eau de parfum",
+        "volume_ml": 50,
+        "family": "citrus woody",
+        "top_notes": "bergamot peel",
+        "heart_notes": "neroli",
+        "base_notes": "cedarwood"
+      },
+      "image": null,
+      "section": "H4"
+    },
+    {
+      "id": "ember-oud",
+      "brand": "Northstar",
+      "title": "Cedar",
+      "category": "Fragrance",
+      "price": 86,
+      "description": "Black tea, smoked woods, and a restrained oud accord.",
+      "about": [
+        "Black-tea opening",
+        "Smoked-wood heart",
+        "Oud and resin base"
+      ],
+      "material": "50 ml eau de parfum",
+      "colors": [],
+      "sizes": [
+        "50 ml"
+      ],
+      "attributes": {
+        "concentration": "eau de parfum",
+        "volume_ml": 50,
+        "family": "smoky woody",
+        "top_notes": "black tea",
+        "heart_notes": "smoked wood",
+        "base_notes": "oud accord"
+      },
+      "image": null,
+      "section": "H5"
+    },
+    {
+      "id": "iris-paper",
+      "brand": "Northstar",
+      "title": "irish paper",
+      "category": "Fragrance",
+      "price": 78,
+      "description": "Iris, rice powder, and pale sandalwood.",
+      "about": [
+        "Cool iris opening",
+        "Rice-powder heart",
+        "Pale sandalwood base"
+      ],
+      "material": "50 ml eau de parfum",
+      "colors": [],
+      "sizes": [
+        "50 ml"
+      ],
+      "attributes": {
+        "concentration": "eau de parfum",
+        "volume_ml": 50,
+        "family": "powdery floral",
+        "top_notes": "iris",
+        "heart_notes": "rice powder",
+        "base_notes": "sandalwood"
+      },
+      "image": null,
+      "section": "H6"
+    }
+  ]
+}

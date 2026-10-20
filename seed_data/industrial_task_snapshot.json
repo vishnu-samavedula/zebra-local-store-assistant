@@ -1,0 +1,11 @@
+{
+  "worker_id": "demo-worker-01",
+  "worker_label": "Demo worker",
+  "updated_at": "2026-10-12T08:00:00Z",
+  "synthetic": true,
+  "tasks": [
+    {"id":"TASK-0001","worker_id":"demo-worker-01","description":"Check Cloudweight Hoodie stock","details":"Count the Ink, size S variant and note any difference from the recorded inventory. This preview cannot submit an update.","location":"Section A1 · Bin 2","status":"Assigned","updated_at":"2026-10-12T08:00:00Z"},
+    {"id":"TASK-0002","worker_id":"demo-worker-01","description":"Inspect inventory boxes","details":"Inspect the outer packaging in Section A1 and note visible damage. Do not handle unsafe stock; follow the applicable operating procedure.","location":"Section A1","status":"Assigned","updated_at":"2026-10-12T08:00:00Z"},
+    {"id":"TASK-0003","worker_id":"demo-worker-01","description":"Review a stock discrepancy","details":"Compare the physical count with the recorded count for Cloudweight Hoodie, Ink, size XS. Record observations without changing inventory in this preview.","location":"Section A1 · Bin 1","status":"In progress","updated_at":"2026-10-12T08:00:00Z"}
+  ]
+}

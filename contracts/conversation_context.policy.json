@@ -1,0 +1,47 @@
+{
+  "policy_version": "warehouse-floor-context-v2",
+  "status": "implemented_installed_supplied_call_device_verified_model_and_speech_limitations_recorded",
+  "scope": "Separate visible activity feeds for General and SOP Advisor; only pending tool state is model context.",
+  "owners": {
+    "harness": "Select the current request's grounded evidence and trusted state; define request completion and context reset.",
+    "app": "Display and retain chat according to existing retention rules, but do not replay that chat as model history for new requests.",
+    "training_and_evaluation": "Use the same request-scoped context and reset boundaries as app inference."
+  },
+  "retain_while_pending": [
+    "Pending tool and grounded required arguments",
+    "Missing fields, latest question and verified options"
+  ],
+  "reset_after": [
+    "Completed read, including catalog not-found or a grounded zero-stock result",
+    "Confirmed write successfully saved",
+    "Cancelled request",
+    "Terminal unsupported-intent response",
+    "Mode switch",
+    "Clear, Stop or pending-request Cancel"
+  ],
+  "not_completion": [
+    "A clarification or correction",
+    "An unconfirmed write preview",
+    "A recoverable failure while the current request remains pending",
+    "A paused request with required fields still missing"
+  ],
+  "new_request": "Begin with the new worker input and its own trusted state. Do not reuse products, variants, quantities, locations or safety observations from completed requests.",
+  "unresolved_reference": "Completed-request references are not recovered from the activity feed. Reads return candidates or a catalog fallback; writes may ask at most two short questions.",
+  "pending_draft_interruptions": "Independent reads execute without replaying completed history. Only focused pending write slots are model context. Mode switches, Clear, Stop and Cancel cancel pending drafts. Only Clear deletes the selected mode\u2019s displayed and locally saved activity feed; saved tickets remain.",
+  "preserved_outside_model_context": [
+    "Separate mode feeds (up to 200 messages per mode)",
+    "Original report evidence, ticket persistence and duplicate controls"
+  ],
+  "controls": "Confirmation, cancellation, pagination and explicit field withdrawals remain harness-owned; they are not model authorization targets.",
+  "safety": "Keep complete original safety/report evidence inside the harness while pending. Model context contains only bounded tool/slot state; mode changes and cancellation do not authorize a write or erase persisted tickets.",
+  "runtime_limits": {
+    "current_context_capacity": 4096,
+    "current_output_ceiling": 96,
+    "cache_prompt": true,
+    "smaller_context_budget": "Not part of this policy change; requires separate verification."
+  },
+  "runtime_changes_made_by_this_contract_update": true,
+  "verification": "Implementation: CpuAudioRuntime.kt, FloorHarness pending-slot context, and source/device regression evidence retained privately.",
+  "clarification_limit": 2,
+  "read_clarification": false
+}
