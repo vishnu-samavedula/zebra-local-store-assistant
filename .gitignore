@@ -35,6 +35,7 @@ venv/
 **/.cxx/
 *.apk
 *.aab
+/archive/apk/
 
 # Restored native libraries (distribution archive lives in native_runtime/), model weights and audio
 android/app/src/main/jniLibs/
