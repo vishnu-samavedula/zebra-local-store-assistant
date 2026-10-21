@@ -11,6 +11,14 @@ Workers can look up stock and locations, request replenishment, consult approved
 - **Writes:** readable preview and explicit confirmation. Confirmed replenishment updates the local inventory and creates one ticket atomically.
 - **Controls:** separate mode feeds, bounded clarification, Clear, Cancel, and Stop. Completed requests do not become model conversation history.
 
+## Screenshots
+
+Device captures from earlier demo builds; current controls and content may differ. Stock and assigned tasks shown are synthetic demo data.
+
+| Inventory lookup | Operating procedures | Assigned tasks |
+| --- | --- | --- |
+| <img src="docs/screenshots/inventory-lookup.png" width="240" alt="Stock lookup with product variant, available quantity and bin location"> | <img src="docs/screenshots/operating-procedures.png" width="240" alt="Browse warehouse operating procedure cards"> | <img src="docs/screenshots/assigned-tasks.png" width="240" alt="Assigned tasks from a synthetic worker snapshot"> |
+
 ## Architecture and operation
 
 - [Runtime architecture](docs/ARCHITECTURE.md)
@@ -20,6 +28,26 @@ Workers can look up stock and locations, request replenishment, consult approved
 - [Worker experience](contracts/worker_experience_v2.md)
 
 The active generation runtime is llama.cpp on CPU. Procedure retrieval uses a separate local ColBERT encoder and bundled card vectors. No cloud service is required for the configured worker journeys after artifacts are provisioned.
+
+## Install and launch
+
+Requires Android platform tools (`adb`), an Android 12+ arm64 device with USB debugging enabled, and an authorized USB connection. Run from the repository root with an already-built APK at the path below; APKs are not currently distributed in this repository.
+
+```sh
+adb devices
+export ANDROID_SERIAL=YOUR_DEVICE_SERIAL
+adb -s "$ANDROID_SERIAL" install -r android/app/build/outputs/apk/debug/app-debug.apk
+adb -s "$ANDROID_SERIAL" shell am start -n com.example.zebralocalai/.MainActivity
+```
+
+Replace `YOUR_DEVICE_SERIAL` with the serial shown by `adb devices`. To launch an already-installed app, only the last command is needed after setting the serial. If your APK was supplied separately, replace the install path with its location. Model files must be provisioned separately for inference.
+
+To build the APK locally, first provision the model/retrieval build prerequisites in the [developer runbook](docs/DEV_RUNBOOK.md), configure the Android SDK and Java toolchain, then run:
+
+```sh
+python3 scripts/restore_native_runtime.py
+./android/gradlew -p android assembleDebug
+```
 
 ## Public repository boundary
 
