@@ -1,0 +1,257 @@
+{
+  "format_version": 1,
+  "name": "llama-b11565-android-arm64",
+  "upstream": "https://github.com/ggml-org/llama.cpp",
+  "upstream_revision": "f9a95aeb2096d0c0218e0cd6e6d901cd37be798a",
+  "provenance": "Existing app runtime; embedded build identifier f9a95aeb2 matches b11565. Original build command and local patch inventory were not retained; this is a binary distribution, not a reproducible-build claim.",
+  "transformation": "llvm-strip --strip-debug on copies only; original local libraries unchanged.",
+  "platform": "Android arm64-v8a; tested app target Zebra only",
+  "compiler_revision": "5e96669f06077099aa41290cdb4c5e6fa0f59349",
+  "boringssl_version_note": "License from default BoringSSL tag 0.20260929.0 in this llama.cpp revision; BoringSSL symbols verified in binary, exact linked tag not independently recoverable.",
+  "files": [
+    {
+      "name": "libggml-base.so",
+      "bytes": 1283808,
+      "sha256": "fc7f193d85c3c038f6b8e50f8e0320390e2a912f9f9d81ec8a7241ae532861ea",
+      "original_sha256": "438b4b6cea058afef70de7f8bb8666827d5f98e82880adb710a9de8811fb9b99",
+      "needed": [
+        "libm.so",
+        "libdl.so",
+        "libc.so"
+      ],
+      "mode": "0644"
+    },
+    {
+      "name": "libggml-cpu.so",
+      "bytes": 857440,
+      "sha256": "6f1702a214a982067255a6190dfe757e4795751f4ba24e9b3db52be7591c8c68",
+      "original_sha256": "9d57687a598cf038de810623be5e4bf6176a3af26b9c70335b0a225ee37e7d20",
+      "needed": [
+        "libggml-base.so",
+        "libm.so",
+        "libdl.so",
+        "libc.so"
+      ],
+      "mode": "0644"
+    },
+    {
+      "name": "libggml-hexagon.so",
+      "bytes": 1212128,
+      "sha256": "35f3d9bf243de4e163d29a7cca11eca62a872a68fd47e6c50ea483e866f2e019",
+      "original_sha256": "124072cd0da2b125afeea252b3fbd8e37dee5c4ebcf031716b28b985c008d174",
+      "needed": [
+        "liblog.so",
+        "libdl.so",
+        "libggml-base.so",
+        "libm.so",
+        "libc.so"
+      ],
+      "mode": "0644"
+    },
+    {
+      "name": "libggml-opencl.so",
+      "bytes": 4006384,
+      "sha256": "6b2697c2e4ada2e3ea2d957b6a22191445dfe64438374360c4cc1e5bcaa048f9",
+      "original_sha256": "2b0f51b05b78387dd7a292108379d0888dbb1d4e682278f6be416323f63292b3",
+      "needed": [
+        "libggml-base.so",
+        "libOpenCL.so",
+        "libm.so",
+        "libdl.so",
+        "libc.so"
+      ],
+      "mode": "0644"
+    },
+    {
+      "name": "libggml-rpc.so",
+      "bytes": 1117192,
+      "sha256": "9dd329aca487d260428bba77bf09abb3b98d39468946e2c2700bd5e096a1d32f",
+      "original_sha256": "9f9e6b3c0a57276e874c2127415fcbd12c4fce4d484a35c5cb93542dc9a40619",
+      "needed": [
+        "libggml-base.so",
+        "libm.so",
+        "libdl.so",
+        "libc.so"
+      ],
+      "mode": "0644"
+    },
+    {
+      "name": "libggml.so",
+      "bytes": 42360,
+      "sha256": "1e0b263497598e73b72f3fbc9dec42885ab39e81ac3eb2315128c20e2a92d25b",
+      "original_sha256": "4960c06a371e08256ae949017a76b0bdf512cb0cf950ef99676ccb59556c0cb2",
+      "needed": [
+        "libggml-cpu.so",
+        "libggml-rpc.so",
+        "libggml-opencl.so",
+        "libggml-hexagon.so",
+        "libggml-base.so",
+        "libm.so",
+        "libdl.so",
+        "libc.so"
+      ],
+      "mode": "0644"
+    },
+    {
+      "name": "libllama-audio-cpu-server.so",
+      "bytes": 6240,
+      "sha256": "2181e303d16ff2acb5f098432f9700f38db9c90be15025fba7f30440c1d0f1f5",
+      "original_sha256": "93c2e29469d108a88db4b9b2075198e1be153e3fb2c7abc9a17c260226cf1821",
+      "needed": [
+        "libllama-server-impl.so",
+        "libllama-common.so",
+        "libmtmd.so",
+        "libllama.so",
+        "libggml.so",
+        "libggml-cpu.so",
+        "libggml-rpc.so",
+        "libggml-opencl.so",
+        "libggml-hexagon.so",
+        "libggml-base.so",
+        "libm.so",
+        "libdl.so",
+        "libc.so"
+      ],
+      "mode": "0755"
+    },
+    {
+      "name": "libllama-common.so",
+      "bytes": 7892080,
+      "sha256": "3cb6c7ea3d96ba9f5a8d706a568667025baee3628c6826ae727f4e80d86a3a1a",
+      "original_sha256": "db8508829fa675fddbc7c4d827ee7ab5c5dd924ab9f87ce507ef94ad780d29ac",
+      "needed": [
+        "libllama.so",
+        "libggml.so",
+        "libggml-cpu.so",
+        "libggml-rpc.so",
+        "libggml-opencl.so",
+        "libggml-hexagon.so",
+        "libggml-base.so",
+        "libm.so",
+        "libdl.so",
+        "libc.so"
+      ],
+      "mode": "0644"
+    },
+    {
+      "name": "libllama-server-impl.so",
+      "bytes": 8936464,
+      "sha256": "f2222a5e50d05ba8459e466bd96f3745b5572b5234de2e8776a455158aeb773f",
+      "original_sha256": "d92df242720d1bf08489b124e53664ef087b7d99109c597d6b195169b74c3e9c",
+      "needed": [
+        "libllama-common.so",
+        "libmtmd.so",
+        "libllama.so",
+        "libggml.so",
+        "libggml-cpu.so",
+        "libggml-rpc.so",
+        "libggml-opencl.so",
+        "libggml-hexagon.so",
+        "libggml-base.so",
+        "libm.so",
+        "libdl.so",
+        "libc.so"
+      ],
+      "mode": "0644"
+    },
+    {
+      "name": "libllama.so",
+      "bytes": 4705680,
+      "sha256": "16cfaa2688ae1a5423e4b5cfc6d5080567da1e78fea5eb25a338331c57aaf220",
+      "original_sha256": "2307e4f6fd666b24f34b72762d2b7d172ce6fe98b53aa352723038b3a87bb864",
+      "needed": [
+        "libggml.so",
+        "libggml-cpu.so",
+        "libggml-rpc.so",
+        "libggml-opencl.so",
+        "libggml-hexagon.so",
+        "libggml-base.so",
+        "libm.so",
+        "libdl.so",
+        "libc.so"
+      ],
+      "mode": "0644"
+    },
+    {
+      "name": "libmtmd.so",
+      "bytes": 1541464,
+      "sha256": "6a4539b4df7ad4cd5c3f5f9242fb0859178ed2796929cdc3341fb9bf65b40aec",
+      "original_sha256": "8a59c5f9b505f1943176fef855104e19a1be2e38b2972d86a343edc091a15110",
+      "needed": [
+        "libllama.so",
+        "libggml.so",
+        "libggml-cpu.so",
+        "libggml-rpc.so",
+        "libggml-opencl.so",
+        "libggml-hexagon.so",
+        "libggml-base.so",
+        "libm.so",
+        "libdl.so",
+        "libc.so"
+      ],
+      "mode": "0644"
+    }
+  ],
+  "notices": [
+    {
+      "name": "BoringSSL-LICENSE.txt",
+      "sha256": "827c8d8fc207c2392794eef9e00fe246f9f61fdcc132556c275be3dd8c3cd97f"
+    },
+    {
+      "name": "compiler-rt-LICENSE.txt",
+      "sha256": "1a8f1058753f1ba890de984e48f0242a3a5c29a6a8f2ed9fd813f36985387e8d"
+    },
+    {
+      "name": "cpp-httplib-LICENSE.txt",
+      "sha256": "4b45cbe16d7b71b89ae6127e26e0d90a029198ca5e958ad8e3d0b8bbed364d8b"
+    },
+    {
+      "name": "libcxx-LICENSE.txt",
+      "sha256": "539dd7aed86e8a4f12cbdd0e6c50c189c7d74847e4fecc64ce2c6ee3a01da38b"
+    },
+    {
+      "name": "libcxxabi-LICENSE.txt",
+      "sha256": "e2b35be49f7284a45b7baca8fc7b3ab7440e7902392b2528a457816b5bb2a15c"
+    },
+    {
+      "name": "llama.cpp-LICENSE.txt",
+      "sha256": "94f29bbed6a22c35b992c5c6ebf0e7c92f13b836b90f36f461c9cf2f0f1d010d"
+    },
+    {
+      "name": "llamafile-LICENSE.txt",
+      "sha256": "c5843750168debd92766cf0cf2f5040ce8a6eefe2ef7ebc652997b6897e1ba3b"
+    },
+    {
+      "name": "miniaudio-LICENSE.txt",
+      "sha256": "bde09ed161fef45da2194cba70601aab33ca6fdfe6eed2e3d95efd15b48561f9"
+    },
+    {
+      "name": "nlohmann-json-LICENSE.txt",
+      "sha256": "c0d068392ea65358b798b8c165103560f06e9e3b38c4ab4e2d8810a7b931af86"
+    },
+    {
+      "name": "rotate-bits-LICENSE.txt",
+      "sha256": "ca0b44aec101afb6b46f4c39b23369fa06a64fb9c0add37c2689d702156fee55"
+    },
+    {
+      "name": "sha256-LICENSE.txt",
+      "sha256": "b81d0022ca6367918c67b57e9647d3513ee58809fd4b0ef0b3492f1356bced25"
+    },
+    {
+      "name": "stb-image-LICENSE.txt",
+      "sha256": "0459bce8ce9b9b045d20d9c48192226d302f0cce81b151ba71189b2a10c8a8fc"
+    },
+    {
+      "name": "subprocess-LICENSE.txt",
+      "sha256": "87e83b5fb7afe48f3b8a441bff76bb7ddbe6d885acaebfc2f2fbb935d08e27df"
+    },
+    {
+      "name": "xxhash-LICENSE.txt",
+      "sha256": "6ffedbc0f7878612d2b23589f1ff2ab15633e1df7963a5d9fc750ec5500c7e7a"
+    },
+    {
+      "name": "yarn-LICENSE.txt",
+      "sha256": "707b81ce28e1d0952791be53d4561b7a6ccbb9ec14abd4819b5dbedc3ceb1564"
+    }
+  ]
+}

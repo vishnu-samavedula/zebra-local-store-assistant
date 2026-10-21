@@ -36,7 +36,7 @@ venv/
 *.apk
 *.aab
 
-# Native runtime binaries, model weights and recorded audio
+# Restored native libraries (distribution archive lives in native_runtime/), model weights and audio
 android/app/src/main/jniLibs/
 android/app/src/audioCpu/jniLibs/**/*.so
 models/downloads/

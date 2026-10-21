@@ -26,14 +26,22 @@ the full text and any applicable separate agreement. Modified or derived
 model artifacts remain subject to applicable upstream terms. There is no
 requirement in this license to publish a private fine-tuned checkpoint.
 
-No model weights, private checkpoint, training recipe, corpus, recordings,
-or native runtime binaries are distributed by this public repository.
+No model weights, private checkpoint, training recipe, corpus, or recordings
+are distributed by this public repository.
 Including a model license does not grant access to or a license to the
 private artifacts. Any separately supplied artifact must carry its own
 applicable license and required copyright/attribution notices.
 
 Other third-party components
 ----------------------------
+The existing Android llama.cpp runtime is distributed in native_runtime/.
+Its manifest records binary provenance and checksums. Preserve every file
+in native_runtime/notices/ with redistributed copies; the archive includes
+these notices and Android builds bundle them as assets. These include
+llama.cpp/ggml and vendored helper licenses, BoringSSL's license, and LLVM
+runtime license texts. See native_runtime/README.md for attribution sources
+and provenance limitations. No proprietary Qualcomm runtime is included.
+
 Separately provisioned runtimes, models, dependencies, and assets retain
 their respective upstream terms. This notice does not replace those terms
 or assert that all such components share one license. Third-party names

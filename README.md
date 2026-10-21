@@ -23,9 +23,9 @@ The active generation runtime is llama.cpp on CPU. Procedure retrieval uses a se
 
 ## Public repository boundary
 
-This repository contains the app, shared harness, synthetic demo catalog/procedures, contracts, and public regression tests. Checkpoint weights, native runtime binaries, generated retrieval assets, recordings, local databases, credentials, training recipes, and training material are maintained separately and are excluded from the public tree.
+This repository contains the app, shared harness, synthetic demo catalog/procedures, contracts, public regression tests, and a [native runtime archive with licenses and checksums](native_runtime/README.md). Checkpoint weights, generated retrieval assets, recordings, local databases, credentials, training recipes, and training material are maintained separately and are excluded from the public tree.
 
-A fresh clone needs the compatible runtime/model artifacts for device inference. See the developer runbook for prerequisites and source-only checks. This is a focused proof of concept; synthetic tests and selected device requests do not establish real warehouse reliability.
+A fresh clone can restore the native libraries with `python3 scripts/restore_native_runtime.py`; compatible model and retrieval artifacts still require separate provisioning. See the developer runbook for prerequisites and source-only checks. This is a focused proof of concept; synthetic tests and selected device requests do not establish real warehouse reliability.
 
 ## Licensing
 

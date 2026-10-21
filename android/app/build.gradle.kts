@@ -73,6 +73,7 @@ android {
 
     sourceSets.getByName("main").assets.directories.add("../../seed_data")
     sourceSets.getByName("main").assets.directories.add("../../contracts")
+    sourceSets.getByName("main").assets.directories.add("../../native_runtime/notices")
     sourceSets.getByName("main").assets.directories.add(retrievalAssets.get().asFile.absolutePath)
     sourceSets.getByName("main").jniLibs.setSrcDirs(
         if (uiOnly) emptyList<String>() else listOf("src/audioCpu/jniLibs")

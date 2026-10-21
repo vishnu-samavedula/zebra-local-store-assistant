@@ -6,13 +6,22 @@ Updated 2026-10-20. Run commands from the repository root unless shown otherwise
 
 Use Android Studio with Android SDK 36, Android platform tools, the project Gradle wrapper, and a compatible Java toolchain. The app targets Android 35, requires Android 31 or newer, and packages arm64 native libraries. Python 3 is required for source-only harness checks; the embedded Android Python version is 3.11.
 
-Full inference also requires separately provisioned artifacts:
+Restore the included native runtime before a full Android build:
 
-- Compatible llama.cpp audio runtime libraries under `android/app/src/audioCpu/jniLibs/arm64-v8a/`.
+```sh
+python3 scripts/restore_native_runtime.py --check
+python3 scripts/restore_native_runtime.py
+```
+
+See the [runtime distribution notes](../native_runtime/README.md) for licenses, checksums and platform limits. The restore command preserves matching local libraries and never provisions models.
+
+Full inference requires:
+
+- The restored llama.cpp audio runtime libraries under `android/app/src/audioCpu/jniLibs/arm64-v8a/`.
 - The private checkpoint/projector matching the hashes and app-private location in `CpuAudioRuntime.kt`.
 - The ColBERT model matching `DeviceColbertRetriever.kt` and generated procedure vectors under `sop_retrieval/generated/colbert-baseline/`.
 
-Model artifacts, recordings, runtime binaries and training materials are not distributed in this public repository. Provision them through the approved private workflow. Do not change pinned hashes just to load an incompatible artifact.
+Model artifacts, generated retrieval assets, recordings and training materials are not distributed in this public repository. Provision them through the approved private workflow. Do not change pinned hashes just to load an incompatible artifact. Native runtime binaries are distributed in the licensed archive above; Android builds bundle its accompanying notices as assets.
 
 ## Source checks
 
